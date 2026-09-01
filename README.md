@@ -1,3 +1,5 @@
+![CI](https://github.com/USERNAME/REPOSITORY/actions/workflows/WORKFLOW.yml/badge.svg)
+
 # ZetaShield: Zero-Trust Micro-Segmentation Sidecar Proxy
 
 A lightweight, high-performance, software-defined security mesh designed to enforce **Zero-Trust Network Architecture (ZTNA)** inside containerized microservice environments.
