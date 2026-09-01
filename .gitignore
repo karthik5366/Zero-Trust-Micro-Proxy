@@ -34,3 +34,9 @@ audit.log.jsonl
 data-plane-proxy/data-plane-proxy
 __pycache__/
 *.pyc
+
+certs/*.pem
+certs/*.csr
+certs/*.srl
+certs/san.cnf
+certs/cert-details.txt
