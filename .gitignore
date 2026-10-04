@@ -39,4 +39,4 @@ certs/*.pem
 certs/*.csr
 certs/*.srl
 certs/san.cnf
-certs/cert-details.txt
+certs/cert-details.txtcerts/san-*.cnf

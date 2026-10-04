@@ -1,0 +1,72 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            1c:94:2a:4f:67:ee:95:2f:50:41:8f:c9:86:99:09:96:af:16:07:59
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=ZetaShield Root CA
+        Validity
+            Not Before: Sep  1 19:15:12 2026 GMT
+            Not After : Oct  1 19:15:12 2026 GMT
+        Subject: CN=frontend-proxy
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:b8:e1:11:db:25:40:46:22:01:ef:ef:50:d1:11:
+                    53:7d:ec:89:35:91:27:c0:d8:46:55:57:c6:97:ff:
+                    86:d6:59:60:c8:08:e6:80:ac:c2:d4:37:7e:fa:53:
+                    c6:64:31:a0:52:cd:10:95:1f:52:cc:04:a2:77:a0:
+                    de:ad:94:75:36:17:6c:d1:a4:89:be:1d:a7:00:a8:
+                    1c:12:95:79:e4:59:d9:27:0a:18:95:4b:14:04:06:
+                    59:a5:58:70:e1:f2:4d:d7:71:b8:5d:3a:38:da:e5:
+                    1c:84:0d:64:3f:00:c1:d4:93:d2:e3:0b:ed:43:64:
+                    3f:f5:54:9d:9b:4a:48:de:a5:33:15:48:dd:be:b0:
+                    66:0c:5b:ee:e4:7e:d6:79:d4:4d:c5:12:ee:31:1e:
+                    97:25:c0:8f:95:7a:c9:5d:f9:49:5c:a4:f8:04:f4:
+                    d1:f5:88:76:68:f9:1a:5e:45:24:c1:c6:78:0c:07:
+                    71:83:c2:a3:6e:23:24:6e:f5:32:a3:14:86:42:49:
+                    b9:9e:64:62:8b:c2:4c:56:34:4e:5a:d2:b5:02:94:
+                    68:b9:53:ec:96:52:d2:ac:15:6d:ed:23:e4:5c:2f:
+                    61:4d:57:22:0a:72:df:8a:57:ca:18:9d:4d:37:f4:
+                    8e:ea:c2:2c:0c:26:fc:ec:a3:64:1f:54:32:49:83:
+                    05:f3
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Alternative Name: 
+                URI:spiffe://zetashield.local/ns/default/sa/frontend-proxy
+            X509v3 Subject Key Identifier: 
+                2C:0B:86:76:1F:61:95:B4:10:6C:98:B6:8B:97:A5:10:DF:14:07:31
+            X509v3 Authority Key Identifier: 
+                37:9B:3C:FC:54:31:DE:CF:9A:A5:E7:9B:35:C0:83:E3:31:0D:4A:7B
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        33:90:fa:2d:2c:c2:94:cc:20:3a:2d:24:0c:66:bd:01:09:c2:
+        b1:cb:c2:ea:a0:66:7a:57:3a:55:ef:2e:dd:c9:9b:01:5a:45:
+        40:75:13:55:79:4f:47:d6:8c:c4:b6:8e:c9:c7:45:e5:7d:2e:
+        6c:7c:5f:c3:7e:87:49:e4:d9:3a:f6:1d:16:96:fa:eb:71:37:
+        d1:ab:a0:18:cc:aa:70:54:f5:5a:f5:cd:69:76:27:06:ba:83:
+        97:2b:fb:0c:c4:c2:85:87:1b:0b:b6:90:3b:cf:14:d5:6d:ff:
+        2b:0c:dc:96:f7:f2:4b:9d:62:d8:10:57:08:41:ed:65:20:0f:
+        9a:c8:33:6e:be:df:e7:39:44:15:3e:f4:bd:ee:53:a7:2f:a2:
+        af:de:7d:14:cb:b7:f6:d1:8b:a5:1f:b9:cc:8f:c2:aa:6a:0c:
+        60:38:d0:11:91:7f:c6:4d:71:81:c0:5f:94:15:d9:5f:59:9c:
+        d9:91:0c:4f:58:17:1c:7f:df:b7:31:ae:63:3c:59:f0:c2:04:
+        25:d2:4a:c4:03:57:a6:cb:9f:4a:c2:54:3a:ba:d0:5f:18:fc:
+        86:da:c8:41:11:15:7a:02:8d:b5:16:82:21:ca:7a:91:0e:39:
+        fc:ca:16:58:94:91:db:a9:3a:d1:e0:9f:dd:e8:ec:3b:ca:6e:
+        12:db:a6:89:86:b4:21:af:f3:ac:6b:41:71:f4:4d:6c:f1:7b:
+        26:c2:34:aa:5e:ca:b5:fb:0a:ad:0c:4d:5d:62:4c:9a:8a:aa:
+        37:39:62:e2:1c:b3:00:5c:1c:df:9f:6a:fc:b3:31:61:7a:89:
+        7a:e1:48:ca:5f:37:ce:df:80:30:2b:04:4a:b8:f2:0c:6c:ea:
+        16:db:50:d0:4f:94:f9:81:3a:c5:d8:35:a2:7d:91:3b:b0:30:
+        9d:cf:12:ae:45:93:30:fd:8e:50:07:e5:83:e0:df:c8:16:ba:
+        d9:9a:76:20:11:dd:a0:63:9e:c1:42:1c:dd:bf:85:30:a0:52:
+        0c:4b:a4:8e:05:e7:0e:54:51:43:21:35:99:02:23:d1:76:ca:
+        98:15:80:29:68:51:8c:3d:c7:d6:b7:02:9d:8c:fc:26:e2:62:
+        67:88:3e:58:fe:79:69:c7:d3:a7:bd:c5:45:f9:14:f6:bf:5c:
+        eb:fc:6e:4e:39:2c:4f:de:ab:8c:10:8d:31:59:92:da:e1:aa:
+        c8:e3:73:9e:95:36:46:c5:a7:e4:ca:9d:f2:31:67:68:fa:a7:
+        c1:c7:c3:2f:43:34:08:fc:e7:bd:44:8f:76:5b:74:8c:27:d4:
+        c4:6b:23:69:c1:cc:5a:a7:c8:fc:85:d2:0a:3f:a0:17:10:08:
+        5d:0a:53:6c:66:c3:43:d7

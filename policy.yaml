@@ -1,0 +1,31 @@
+# policy.yaml — ZetaShield V1.0 declarative policy
+# Deny-by-default: only explicit matches pass.
+version: "1.0"
+
+routes:
+  /orders/:   http://127.0.0.1:9091
+  /payments/: http://127.0.0.1:9092
+
+rules:
+  # frontend-service can read orders
+  - identity: spiffe://zetashield.local/ns/default/sa/frontend-service
+    path_prefix: /orders/
+    methods: [GET]
+
+  # frontend-service can make payments
+  - identity: spiffe://zetashield.local/ns/default/sa/frontend-service
+    path_prefix: /payments/
+    methods: [GET, POST]
+
+  # orders-service can read orders (its own domain)
+  - identity: spiffe://zetashield.local/ns/default/sa/orders-service
+    path_prefix: /orders/
+    methods: [GET]
+
+  # payments-service can access payments (its own domain)
+  - identity: spiffe://zetashield.local/ns/default/sa/payments-service
+    path_prefix: /payments/
+    methods: [GET, POST]
+
+  # ⚠️ NO RULE for orders-service → /payments/ = DENIED (micro-segmentation!)
+  # ⚠️ NO RULE for payments-service → /orders/ = DENIED
