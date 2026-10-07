@@ -1,0 +1,23 @@
+version: "1.0"
+
+routes:
+  /orders/:   http://orders:9091
+  /payments/: http://payments:9092
+  /inventory/: http://dead-host:9099  # Intentional DNS failure for Test 7
+
+rules:
+  - identity: spiffe://zetashield.local/ns/default/sa/frontend-service
+    path_prefix: /orders/
+    methods: [GET]
+  - identity: spiffe://zetashield.local/ns/default/sa/frontend-service
+    path_prefix: /payments/
+    methods: [GET, POST]
+  - identity: spiffe://zetashield.local/ns/default/sa/frontend-service
+    path_prefix: /inventory/
+    methods: [GET]
+  - identity: spiffe://zetashield.local/ns/default/sa/orders-service
+    path_prefix: /orders/
+    methods: [GET]
+  - identity: spiffe://zetashield.local/ns/default/sa/payments-service
+    path_prefix: /payments/
+    methods: [GET, POST]

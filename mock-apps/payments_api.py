@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """payments-api — protected backend service (V1.0)
-Binds EXCLUSIVELY to 127.0.0.1:9092 — unreachable from the network."""
+Binds to 127.0.0.1:9092 by default, or configurable via BIND_HOST and PORT."""
 import json
+import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 
@@ -31,5 +32,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("[payments-api] listening on 127.0.0.1:9092 (LOCALHOST ONLY)")
-    HTTPServer(("127.0.0.1", 9092), Handler).serve_forever()
+    host = os.environ.get("BIND_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", 9092))
+    print(f"[payments-api] listening on {host}:{port}")
+    HTTPServer((host, port), Handler).serve_forever()

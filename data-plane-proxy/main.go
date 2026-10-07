@@ -145,22 +145,32 @@ func writeAudit(e AuditEntry) {
 		color, e.Decision, cReset, e.Identity, e.Method, e.Path, e.Reason)
 }
 
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
 // ---------- Main ----------
 
 func main() {
-	if err := loadPolicy("../policy.yaml"); err != nil {
+	policyPath := getEnv("ZS_POLICY_PATH", "../policy.yaml")
+	if err := loadPolicy(policyPath); err != nil {
 		log.Fatalf("FATAL: %v", err)
 	}
-	fmt.Println("[policy] loaded policy.yaml — routes + rules active")
+	fmt.Printf("[policy] loaded %s — routes + rules active\n", policyPath)
 
+	auditPath := getEnv("ZS_AUDIT_PATH", "audit.log.jsonl")
 	var err error
-	auditFile, err = os.OpenFile("audit.log.jsonl", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	auditFile, err = os.OpenFile(auditPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer auditFile.Close()
 
-	caPEM, err := os.ReadFile("../certs/ca.pem")
+	caPath := getEnv("ZS_CA_PATH", "../certs/ca.pem")
+	caPEM, err := os.ReadFile(caPath)
 	if err != nil {
 		log.Fatalf("FATAL: cannot read CA cert: %v", err)
 	}
@@ -169,7 +179,9 @@ func main() {
 		log.Fatal("FATAL: failed to parse CA certificate")
 	}
 
-	gatewayCert, err := tls.LoadX509KeyPair("../certs/proxy.pem", "../certs/proxy-key.pem")
+	certPath := getEnv("ZS_CERT_PATH", "../certs/proxy.pem")
+	keyPath := getEnv("ZS_KEY_PATH", "../certs/proxy-key.pem")
+	gatewayCert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		log.Fatalf("FATAL: cannot load gateway cert: %v", err)
 	}
@@ -227,8 +239,9 @@ func main() {
 		proxy.ServeHTTP(w, r)
 	})
 
+	listenAddr := getEnv("ZS_LISTEN_ADDR", ":8443")
 	server := &http.Server{
-		Addr:    ":8443",
+		Addr:    listenAddr,
 		Handler: handler,
 		TLSConfig: &tls.Config{
 			ClientCAs:    caPool,
@@ -247,7 +260,7 @@ func main() {
 	fmt.Println("║  Audit     : audit.log.jsonl (every decision)       ║")
 	fmt.Println("║  Backends  : orders:9091, payments:9092 (localhost) ║")
 	fmt.Println("╚══════════════════════════════════════════════════════╝")
-	fmt.Printf("  Gateway listening on :8443 (mTLS required)\n\n")
+	fmt.Printf("  Gateway listening on %s (mTLS required)\n\n", listenAddr)
 
 	log.Fatal(server.ListenAndServeTLS("", ""))
 }

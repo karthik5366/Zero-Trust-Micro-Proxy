@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: zeta-gateway
+    ports:
+      - "8443:8443"  # ONLY exposed port in the entire mesh
+    volumes:
+      - ./certs:/etc/zetashield/certs:ro
+      - ./deploy/policy.docker.yaml:/etc/zetashield/policy.yaml:ro
+      - ./deploy/logs:/app/logs
+    environment:
+      - ZS_POLICY_PATH=/etc/zetashield/policy.yaml
+      - ZS_CA_PATH=/etc/zetashield/certs/ca.pem
+      - ZS_CERT_PATH=/etc/zetashield/certs/proxy.pem
+      - ZS_KEY_PATH=/etc/zetashield/certs/proxy-key.pem
+      - ZS_AUDIT_PATH=/app/logs/audit.log.jsonl
+      - ZS_LISTEN_ADDR=:8443
+    networks:
+      - zeta-net
+    depends_on:
+      - orders
+      - payments
+
+  orders:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: zeta-orders
+    environment:
+      - APP_FILE=orders_api.py
+      - BIND_HOST=0.0.0.0
+      - PORT=9091
+    networks:
+      - zeta-net
+
+  payments:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: zeta-payments
+    environment:
+      - APP_FILE=payments_api.py
+      - BIND_HOST=0.0.0.0
+      - PORT=9092
+    networks:
+      - zeta-net
+
+networks:
+  zeta-net:
+    driver: bridge

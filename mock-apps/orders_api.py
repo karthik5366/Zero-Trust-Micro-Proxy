@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """orders-api — protected backend service (V1.0)
-Binds EXCLUSIVELY to 127.0.0.1:9091 — unreachable from the network.
+Binds to 127.0.0.1:9091 by default, or configurable via BIND_HOST and PORT.
 The only path to this service is through the Zero-Trust gateway."""
 import json
+import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 
@@ -26,5 +27,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("[orders-api] listening on 127.0.0.1:9091 (LOCALHOST ONLY)")
-    HTTPServer(("127.0.0.1", 9091), Handler).serve_forever()
+    host = os.environ.get("BIND_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", 9091))
+    print(f"[orders-api] listening on {host}:{port}")
+    HTTPServer((host, port), Handler).serve_forever()
