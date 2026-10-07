@@ -45,7 +45,7 @@ func main() {
 	gateway := newMTLSClient()
 
 	fmt.Printf("ZetaShield V1.0 — Latency Benchmark (%d requests per mode)\n", requests)
-	fmt.Println("Backends + gateway must be running.\n")
+	fmt.Println("Backends + gateway must be running.")
 
 	directLats := measure(direct, "http://127.0.0.1:9091/orders/list")
 	gwLats := measure(gateway, "https://127.0.0.1:8443/orders/list")
