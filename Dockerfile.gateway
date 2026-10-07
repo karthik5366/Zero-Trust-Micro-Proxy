@@ -7,8 +7,8 @@ COPY data-plane-proxy/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /zeta-gateway .
 
 FROM alpine:3.19
-RUN apk --no-cache add ca-certificates
 WORKDIR /app
-COPY --from=builder /zeta-gateway .
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /zeta-gateway /app/zeta-gateway
 EXPOSE 8443
-ENTRYPOINT ["/zeta-gateway"]
+ENTRYPOINT ["/app/zeta-gateway"]
