@@ -17,9 +17,11 @@ openssl req -new \
   -out "${SERVICE}.csr" \
   -subj "/CN=${SERVICE}"
 
-cat > san.cnf <<EOF
-subjectAltName=URI:spiffe://zetashield.local/ns/default/sa/${SERVICE}
-EOF
+if [ "$SERVICE" = "proxy" ]; then
+    echo "subjectAltName=URI:spiffe://zetashield.local/ns/default/sa/${SERVICE},IP:127.0.0.1,DNS:localhost" > san.cnf
+else
+    echo "subjectAltName=URI:spiffe://zetashield.local/ns/default/sa/${SERVICE}" > san.cnf
+fi
 
 openssl x509 -req \
   -in "${SERVICE}.csr" \
