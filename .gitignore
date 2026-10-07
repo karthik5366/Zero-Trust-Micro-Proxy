@@ -31,6 +31,9 @@ go.work.sum
 # .idea/
 # .vscode/
 audit.log.jsonl
+deploy/logs/*.jsonl
+deploy/logs/*.log
+!deploy/logs/.gitkeep
 data-plane-proxy/data-plane-proxy
 __pycache__/
 *.pyc

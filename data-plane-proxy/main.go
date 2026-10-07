@@ -51,6 +51,33 @@ func loadPolicy(path string) error {
 	return yaml.Unmarshal(data, &policy)
 }
 
+func startPolicyWatcher(path string) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return
+	}
+	lastMod := info.ModTime()
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			fi, err := os.Stat(path)
+			if err != nil {
+				continue
+			}
+			if fi.ModTime().After(lastMod) {
+				lastMod = fi.ModTime()
+				if err := loadPolicy(path); err != nil {
+					log.Printf("[policy] hot-reload failed: %v", err)
+				} else {
+					fmt.Printf("[policy] hot-reloaded %s (%s)\n", path, time.Now().UTC().Format(time.RFC3339))
+				}
+			}
+		}
+	}()
+}
+
 func checkPolicy(identity, method, path string) (string, bool) {
 	shortName := identity
 	if idx := strings.LastIndex(identity, "/"); idx >= 0 {
@@ -160,6 +187,7 @@ func main() {
 		log.Fatalf("FATAL: %v", err)
 	}
 	fmt.Printf("[policy] loaded %s — routes + rules active\n", policyPath)
+	startPolicyWatcher(policyPath)
 
 	auditPath := getEnv("ZS_AUDIT_PATH", "audit.log.jsonl")
 	var err error

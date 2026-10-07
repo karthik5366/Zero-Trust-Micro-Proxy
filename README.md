@@ -14,6 +14,7 @@ Every service-to-service call must present a cryptographic certificate — the g
 *   **Micro-Segmentation:** Services are isolated from each other. `orders-service` cannot reach `payments-api` unless explicitly allowed.
 *   **Deny-by-Default Policy:** Declarative `policy.yaml` rules control which identity can call which path with which HTTP method. Unmatched = denied (`403 Forbidden`) + logged.
 *   **Fail-Closed:** No cert, no rule, or unreachable backend → the request dies. Failure is never permission.
+*   **Policy Hot-Reload:** Edits to `policy.yaml` are monitored and dynamically reloaded in real time with zero downtime and no container restart required.
 *   **Full Audit Trail:** Every decision (`ALLOW`/`DENY`/`ERROR`) is logged to structured, append-only JSONL with identity, method, path, and reason.
 
 ---
@@ -138,6 +139,30 @@ python client.py
 
 ---
 
+## Docker Deployment (V2.0 Containerized Mesh)
+
+Run the entire Zero-Trust mesh with network namespace isolation in Docker:
+
+```bash
+# 1. Build and start the mesh (Gateway + isolated backends)
+docker compose up --build -d
+
+# 2. Run the 7-test adversarial suite from host
+cd mock-apps
+python client.py
+
+# 3. Verify backend network isolation (direct host access fails)
+curl http://127.0.0.1:9091/orders/list
+# Expected: Connection refused
+
+# 4. Tear down
+docker compose down
+```
+
+> **Network Isolation Guarantee:** The Gateway is the **only** service with an exposed host port (`:8443`). Backends have no port mappings and communicate solely via Docker's internal `zeta-net` bridge network.
+
+---
+
 ## The 7-Test Adversarial Matrix
 
 | Test | Scenario | Expected Result | Security Guarantee Demonstrated |
@@ -182,8 +207,8 @@ go test -v ./...
 | Version | Architecture | Change |
 | :--- | :--- | :--- |
 | **V0.1** | Sidecar Mesh (4 hops) | Initial prototype; high latency. |
-| **V1.0** | **Consolidated Gateway (2 hops)** | **Current:** Reduced latency (~0.6ms), simplified topology, strict mTLS. |
-| **V2.0** | Containerized Mesh | **Roadmap:** Docker-Compose packaging, hot-reload policies, React Admin Console. |
+| **V1.0** | **Consolidated Gateway (2 hops)** | Reduced latency (~0.6ms), simplified topology, strict mTLS. |
+| **V2.0** | **Containerized Mesh** | **Complete:** Docker-Compose deployment, network namespace isolation, zero-downtime policy hot-reload. *(Phase 2: React Admin Console).* |
 
 ---
 
