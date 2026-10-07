@@ -1,84 +1,111 @@
-#!/usr/bin/env python3
-"""
-client.py — V1.0 demo client (simulates services with real certificates)
-Runs the 5-test Review 2 demonstration sequence.
-"""
-import ssl
 import urllib.request
 import urllib.error
+import ssl
+import sys
+import os
 
-GATEWAY = "https://127.0.0.1:8443"
+# Ensure we are running from mock-apps/ so relative paths work
+if not os.path.basename(os.getcwd()) == 'mock-apps':
+    print("ERROR: Please run this script from the 'mock-apps' directory.")
+    sys.exit(1)
 
+GATEWAY_URL = "https://127.0.0.1:8443"
+CERTS_DIR = "../certs"
 
-def make_request(label, method, path, cert_file=None, key_file=None):
-    """Send a request to the gateway, optionally with a client certificate."""
-    ctx = ssl.create_default_context(cafile="../certs/ca.pem")
-
-    if cert_file and key_file:
-        ctx.load_cert_chain(cert_file, key_file)
-
-    req = urllib.request.Request(GATEWAY + path, method=method)
-
+def make_request(test_name, method, path, cert_file, key_file):
+    print(f"\n[{test_name}]")
+    print(f"  Request: {method} {path}")
+    
+    url = f"{GATEWAY_URL}{path}"
+    
     try:
-        handler = urllib.request.HTTPSHandler(context=ctx)
-        opener = urllib.request.build_opener(handler)
-        with opener.open(req, timeout=5) as r:
-            result = f"HTTP {r.status}"
-            body = r.read().decode()[:80]
-    except urllib.error.HTTPError as e:
-        result, body = f"HTTP {e.code} {e.reason}", ""
+        # Create SSL context requiring client cert
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=f"{CERTS_DIR}/ca.pem")
+        ctx.load_cert_chain(certfile=cert_file, keyfile=key_file)
+        
+        # Strict hostname checking for the proxy cert
+        ctx.check_hostname = True 
+        ctx.verify_mode = ssl.CERT_REQUIRED
+
+        req = urllib.request.Request(url, method=method)
+        
+        with urllib.request.urlopen(req, context=ctx) as response:
+            status = response.status
+            print(f"  Result: {status} OK")
+            return status
+            
     except ssl.SSLError as e:
-        result, body = f"TLS REJECTED ({e.reason})", ""
-    except Exception as e:
-        result, body = f"FAILED ({type(e).__name__}: {e})", ""
+        print(f"  Result: TLS_REJECT (Handshake Failed)")
+        print(f"  Detail: {str(e).split(':')[-1].strip()}")
+        return "TLS_REJECT"
+        
+    except urllib.error.HTTPError as e:
+        if e.code == 503:
+            print(f"  Result: 503 (Fail-Closed / Backend Down)")
+        else:
+            print(f"  Result: {e.code} {e.reason}")
+        return e.code
+        
+    except urllib.error.URLError as e:
+        # Catches connection refused (backend down) or handshake failures not caught by SSLError
+        if "Connection refused" in str(e):
+             print(f"  Result: 503 (Fail-Closed / Backend Down)")
+             return 503
+        print(f"  Result: ERROR ({e})")
+        return "ERROR"
 
-    print(f"{label}")
-    print(f"  → {result}")
-    if body:
-        print(f"  → {body}")
-    print()
+def main():
+    print("=" * 60)
+    print("ZetaShield V1.0 — 7-Test Adversarial Demo Suite")
+    print("=" * 60)
 
+    # 1. Authorized Access
+    make_request("TEST 1: AUTHORIZED (frontend -> orders)", 
+                 "GET", "/orders/list", 
+                 f"{CERTS_DIR}/frontend-service.pem", f"{CERTS_DIR}/frontend-service-key.pem")
+
+    # 2. No Certificate (Anonymous)
+    print("\n[TEST 2: NO CERTIFICATE (Anonymous)]")
+    print("  Request: GET /orders/list")
+    try:
+        # Context with NO client cert
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=f"{CERTS_DIR}/ca.pem")
+        req = urllib.request.Request(f"{GATEWAY_URL}/orders/list")
+        urllib.request.urlopen(req, context=ctx)
+        print("  Result: 200 OK (FAIL - Should have been rejected)")
+    except ssl.SSLError:
+        print("  Result: TLS_REJECT (Handshake Failed - No Identity)")
+    except urllib.error.URLError:
+        print("  Result: TLS_REJECT (Connection Reset)")
+
+    # 3. Authorized Identity, Unauthorized Path (Deny-by-Default)
+    make_request("TEST 3: DENY-BY-DEFAULT (frontend -> admin)", 
+                 "GET", "/admin/delete", 
+                 f"{CERTS_DIR}/frontend-service.pem", f"{CERTS_DIR}/frontend-service-key.pem")
+
+    # 4. Lateral Movement Blocked (Micro-segmentation)
+    make_request("TEST 4: LATERAL MOVEMENT BLOCKED (orders -> payments)", 
+                 "GET", "/payments/balance", 
+                 f"{CERTS_DIR}/orders-service.pem", f"{CERTS_DIR}/orders-service-key.pem")
+
+    # 5. Authorized Access (Own Domain)
+    make_request("TEST 5: AUTHORIZED (payments -> payments)", 
+                 "GET", "/payments/balance", 
+                 f"{CERTS_DIR}/payments-service.pem", f"{CERTS_DIR}/payments-service-key.pem")
+
+    # 6. FORGED CERTIFICATE (Valid SPIFFE ID, Untrusted CA)
+    make_request("TEST 6: FORGED CERT (Attacker -> orders)", 
+                 "GET", "/orders/list", 
+                 f"{CERTS_DIR}/attacker.pem", f"{CERTS_DIR}/attacker-key.pem")
+
+    # 7. FAIL-CLOSED (Valid Request, Dead Backend)
+    make_request("TEST 7: FAIL-CLOSED (frontend -> inventory [DOWN])", 
+                 "GET", "/inventory/status", 
+                 f"{CERTS_DIR}/frontend-service.pem", f"{CERTS_DIR}/frontend-service-key.pem")
+
+    print("\n" + "=" * 60)
+    print("SUMMARY: Expected Sequence -> 200, TLS_REJECT, 403, 403, 200, TLS_REJECT, 503")
+    print("=" * 60)
 
 if __name__ == "__main__":
-    print("=" * 65)
-    print("  ZetaShield V1.0 — Review 2 Demo (5-Test Sequence)")
-    print("=" * 65)
-    print()
-
-    # TEST 1: Authorized — frontend-service reads orders
-    make_request(
-        "TEST 1: frontend-service → GET /orders/ (authorized)",
-        "GET", "/orders/list",
-        "../certs/frontend-service.pem", "../certs/frontend-service-key.pem"
-    )
-
-    # TEST 2: No certificate — rejected at TLS handshake
-    make_request(
-        "TEST 2: No certificate (unknown caller)",
-        "GET", "/orders/list"
-    )
-
-    # TEST 3: Valid identity, no rule for this path — denied
-    make_request(
-        "TEST 3: frontend-service → GET /admin/ (no rule — denied)",
-        "GET", "/admin/delete",
-        "../certs/frontend-service.pem", "../certs/frontend-service-key.pem"
-    )
-
-    # TEST 4: MICRO-SEGMENTATION — orders-service tries to access payments
-    make_request(
-        "TEST 4: orders-service → GET /payments/ (SEGMENTATION VIOLATION)",
-        "GET", "/payments/balance",
-        "../certs/orders-service.pem", "../certs/orders-service-key.pem"
-    )
-
-    # TEST 5: Payments-service reads its own domain (allowed)
-    make_request(
-        "TEST 5: payments-service → GET /payments/ (authorized)",
-        "GET", "/payments/balance",
-        "../certs/payments-service.pem", "../certs/payments-service-key.pem"
-    )
-
-    print("=" * 65)
-    print("  Expected: 200, TLS_REJECT, 403, 403, 200")
-    print("=" * 65)
+    main()

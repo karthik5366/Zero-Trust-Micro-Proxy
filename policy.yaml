@@ -1,10 +1,9 @@
-# policy.yaml — ZetaShield V1.0 declarative policy
-# Deny-by-default: only explicit matches pass.
 version: "1.0"
 
 routes:
   /orders/:   http://127.0.0.1:9091
   /payments/: http://127.0.0.1:9092
+  /inventory/: http://127.0.0.1:9099  # Intentional dead port for Test 7 (Fail-Closed)
 
 rules:
   # frontend-service can read orders
@@ -17,6 +16,11 @@ rules:
     path_prefix: /payments/
     methods: [GET, POST]
 
+  # frontend-service can check inventory (Test 7)
+  - identity: spiffe://zetashield.local/ns/default/sa/frontend-service
+    path_prefix: /inventory/
+    methods: [GET]
+
   # orders-service can read orders (its own domain)
   - identity: spiffe://zetashield.local/ns/default/sa/orders-service
     path_prefix: /orders/
@@ -27,5 +31,4 @@ rules:
     path_prefix: /payments/
     methods: [GET, POST]
 
-  # NO RULE for orders-service → /payments/ = DENIED (micro-segmentation)
-  # NO RULE for payments-service → /orders/ = DENIED
+# Micro-segmentation: No rules for cross-service access = DENY by default
