@@ -20,4 +20,4 @@ rules:
     methods: [GET]
   - identity: spiffe://zetashield.local/ns/default/sa/payments-service
     path_prefix: /payments/
-    methods: [GET, POST]
+    methods: [GET,POST]

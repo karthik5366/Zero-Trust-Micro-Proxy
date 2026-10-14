@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZetaShield V2.0 — Capstone Review 2 Visual Presentation Kit</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --accent: #10b981;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .title-group h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .title-group p { font-size: 0.8rem; color: var(--muted); }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .controls { display: flex; gap: 8px; align-items: center; }
+    button {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    button:hover { background: #334155; border-color: var(--primary); color: #fff; }
+    .counter { font-size: 0.85rem; color: var(--muted); min-width: 70px; text-align: center; }
+    
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      overflow: hidden;
+    }
+    .image-stage {
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      overflow: auto;
+      position: relative;
+    }
+    .image-stage img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+      cursor: zoom-in;
+      transition: transform 0.2s ease;
+    }
+    .image-stage img.zoomed {
+      max-width: none;
+      max-height: none;
+      transform: scale(1.35);
+      cursor: zoom-out;
+    }
+    .notes-pane {
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .slide-meta { margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .slide-num { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 700; }
+    .slide-title { font-size: 1.1rem; font-weight: 700; margin-top: 4px; color: #fff; }
+    .section-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; margin: 16px 0 6px 0; font-weight: 700; }
+    .script-box {
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid var(--accent);
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      font-style: italic;
+    }
+    .trap-box {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.25);
+      border-left: 3px solid var(--danger);
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+    .trap-q { font-weight: 700; color: #fca5a5; margin-bottom: 4px; }
+    .trap-a { color: #fecaca; line-height: 1.45; }
+    .key-points { list-style: none; margin-top: 6px; }
+    .key-points li {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      padding-left: 14px;
+      position: relative;
+    }
+    .key-points li::before {
+      content: "•";
+      color: var(--primary);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+    
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .thumb-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .thumb-btn.active {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-group">
+      <h1>ZetaShield V2.0 — Capstone Review 2 Visual Deck</h1>
+      <p>Polisetti Hari Sri Raj Karthik (23BCY10308) · Department of Cyber Security & Digital Forensics</p>
+    </div>
+    <div class="controls">
+      <span class="badge">Use Left / Right Arrows</span>
+      <button id="prevBtn" onclick="prevSlide()">◀ Previous</button>
+      <span class="counter" id="counter">1 / 14</span>
+      <button id="nextBtn" onclick="nextSlide()">Next ▶</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="image-stage">
+      <img id="mainImage" src="01_Problem_Flat_Network_vs_Zero_Trust.png" alt="Slide Diagram" onclick="toggleZoom()">
+    </div>
+    <div class="notes-pane" id="notesPane">
+      <!-- Dynamic Notes -->
+    </div>
+  </main>
+
+  <footer id="thumbBar">
+    <!-- Dynamic Thumbnails -->
+  </footer>
+
+  <script>
+    const slides = [
+      {
+        num: "01",
+        file: "01_Problem_Flat_Network_vs_Zero_Trust.png",
+        title: "The Problem — Flat Networks vs. Zero-Trust Micro-Segmentation",
+        script: "Respected panel, traditional perimeter firewalls operate at Layer 3 and Layer 4, leaving internal networks completely 'flat'. As shown on the left, once an attacker compromises an edge service, they can move laterally across internal subnets without further authentication, accessing sensitive databases like Payments. OWASP classifies this as Broken Access Control—the #1 web threat. ZetaShield, shown on the right, enforces NIST SP 800-207 Zero-Trust micro-segmentation: every caller must present an mTLS cryptographic identity, and unregistered callers are dropped at the TLS handshake.",
+        trapQ: "Why can't iptables or standard firewalls solve this?",
+        trapA: "IP addresses are dynamic in containerized fleets, and Layer-4 firewalls cannot inspect HTTP paths or verbs. An attacker on an allowed IP can still issue malicious POST or DELETE calls. ZetaShield enforces Layer-7 identity and path-level policies.",
+        points: ["OWASP #1 Broken Access Control mitigated", "NIST SP 800-207 Zero-Trust Architecture", "Cryptographic isolation stops lateral movement at Layer 7"]
+      },
+      {
+        num: "02",
+        file: "02_System_Context_and_Threat_Boundary.png",
+        title: "System Context & STRIDE Threat Boundary Decomposition",
+        script: "This diagram establishes our formal STRIDE threat boundaries. Zone 0 comprises untrusted client callers. Zone 1 is the ZetaShield Gateway running on port 8443, which acts as the single fail-closed enforcement point. It terminates TLS, parses X.509 certificates against our Root CA, extracts SPIFFE IDs from Subject Alternative Names, and evaluates deny-by-default policy rules. Only verified requests enter Zone 2, our isolated Docker backend fleet.",
+        trapQ: "What happens if the gateway crashes?",
+        trapA: "The system is fail-closed. If the gateway process is unreachable, the TCP port refuses connections. Failure is never permission.",
+        points: ["Zone 0: Untrusted Client perimeter (Host network)", "Zone 1: ZetaShield Gateway (mTLS :8443 fail-closed gate)", "Zone 2: Protected Backend fleet on internal network"]
+      },
+      {
+        num: "03",
+        file: "03_Network_Topology_and_Docker_Isolation.png",
+        title: "Network Topology & Containerized Isolation Boundary",
+        script: "Addressing the feedback from Review 1 requesting an isolated, deployable solution: we engineered complete network containment using a custom Docker bridge network (zeta-net on subnet 172.28.0.0/16). The ZetaShield Gateway is the only container with a host-mapped port (8443). The backend containers—Orders on 9091 and Payments on 9092—bind strictly internally with zero published host ports. As highlighted in red, if an attacker on the host machine attempts 'curl localhost:9091', the OS kernel returns 'Connection Refused' immediately.",
+        trapQ: "Can an attacker on the host reach backends via container IP?",
+        trapA: "In Docker bridge networks on Linux/production hosts, the bridge subnet is isolated via iptables rules unless explicitly routed. In production, we place backends in an internal VPC private subnet.",
+        points: ["Docker bridge network: zeta-net (172.28.0.0/16)", "Port 8443 is the ONLY host-accessible port", "Direct host-to-backend bypass returns Connection Refused"]
+      },
+      {
+        num: "04",
+        file: "04_End_to_End_2Hop_Gateway_Architecture.png",
+        title: "End-to-End 2-Hop Consolidated Gateway Architecture",
+        script: "In Review 1, our V0.1 architecture used a 4-hop sidecar mesh modeled after Istio. The panel rightfully noted that 4 hops added over 4 milliseconds of latency and excessive memory overhead. In V2.0, we consolidated this into an optimized 2-hop gateway: Hop 1 is mTLS from caller to gateway, where identity and policies are evaluated; Hop 2 is high-speed plain HTTP over the isolated Docker bridge. This reduced latency overhead by over 80% down to just 0.60 milliseconds.",
+        trapQ: "Why plain HTTP on Hop 2?",
+        trapA: "Because Hop 2 executes entirely within the isolated Docker bridge network (zeta-net) where no external traffic can enter. Running double-TLS inside an isolated bridge wastes CPU cycles without adding security.",
+        points: ["Consolidated from 4-hop sidecar down to 2-hop gateway", "Over 80% reduction in latency overhead", "Hop 1 mTLS termination + Hop 2 isolated HTTP delivery"]
+      },
+      {
+        num: "05",
+        file: "05_mTLS_Handshake_and_SPIFFE_SAN_Extraction.png",
+        title: "Cryptographic Authentication — mTLS & SPIFFE SAN Extraction",
+        script: "Identity in ZetaShield is not a spoofable HTTP header like X-User-ID. We follow the production SPIFFE standard used by CNCF projects like Istio and SPIRE. During the TLS handshake, our gateway validates the client's X.509 certificate against our trusted Root CA (ca.pem). We extract the URI from the Subject Alternative Name extension: spiffe://zetashield.local/ns/default/sa/frontend-service. If an attacker creates a self-signed cert with that same URI, the handshake drops immediately because the Issuer CA is untrusted.",
+        trapQ: "What prevents certificate theft or replay?",
+        trapA: "TLS 1.3 requires proving possession of the private key via the CertificateVerify signature during the handshake. Stolen public certificates are useless without the private key.",
+        points: ["X.509 Subject Alternative Name (SAN) URI extraction", "Mutual TLS handshake with ClientAuth RequireAndVerify", "Untrusted Root CA causes immediate TLS_REJECT"]
+      },
+      {
+        num: "06",
+        file: "06_PBAC_Policy_Evaluation_Flowchart.png",
+        title: "Policy Engine — Deny-by-Default Evaluation Flowchart",
+        script: "Our policy engine follows strict Policy-Based Access Control (PBAC) with a deny-by-default invariant. When a request arrives with a verified SPIFFE ID, the engine checks: First, does a rule exist for this identity? Second, does the requested URI match the configured path_prefix using longest-prefix matching? Third, is the HTTP verb in the allowed methods list? If all three match, it forwards the request with 200 OK. If any condition fails, it drops down to 403 Forbidden. There are zero implicit permissions.",
+        trapQ: "How are path wildcards evaluated?",
+        trapA: "We perform deterministic prefix matching (strings.HasPrefix). Longest-prefix matching ensures that more specific route rules take precedence over broader ones.",
+        points: ["Strict Deny-by-Default fallback", "Identity + Path Prefix + HTTP Method validation", "Zero implicit permissions in the policy engine"]
+      },
+      {
+        num: "07",
+        file: "07_Hot_Reload_Engine_State_Machine.png",
+        title: "Zero-Downtime Policy Hot-Reload Architecture",
+        script: "ZetaShield supports live policy hot-reloading without dropping active TCP connections or restarting containers. A dedicated background goroutine polls the policy.yaml modification timestamp every 1 second. When changes occur, it parses the YAML and performs an atomic in-memory swap under a write lock (policyMu.Lock()), which is held for less than 0.05 milliseconds. Concurrent requests continue reading via read locks (RLock()). In our live demo, editing the policy takes effect in under 1 second.",
+        trapQ: "Does hot-reloading cause request race conditions?",
+        trapA: "No. Go's sync.RWMutex guarantees that any in-flight request either completes with the old policy struct or waits microseconds for the write-lock swap and evaluates against the new policy.",
+        points: ["1-second ticker polling os.Stat ModTime", "sync.RWMutex write lock held < 0.05ms", "Instant access revocation without container restart"]
+      },
+      {
+        num: "08",
+        file: "08_Request_Lifecycle_Sequence_Diagram.png",
+        title: "Request Lifecycle — Detailed UML Sequence Diagram",
+        script: "This sequence diagram traces the complete 9-step request lifecycle. Steps 1 and 2 negotiate mTLS. Step 3 dispatches the HTTP request. Step 4 and 5 evaluate PBAC rules in-memory. Steps 6 and 7 reverse-proxy the request to the internal backend and receive the response. Step 8 returns the payload to the caller. Crucially, Step 9 asynchronously writes an immutable event to audit.log.jsonl, ensuring forensic traceability without blocking the response pipeline.",
+        trapQ: "Why is audit logging asynchronous?",
+        trapA: "Flushing logs synchronously to disk adds disk I/O latency to the request critical path. Asynchronous channel-based logging preserves our 0.60ms sub-millisecond latency SLA.",
+        points: ["9-step chronological packet flow", "mTLS handshake -> PBAC engine -> Reverse Proxy", "Non-blocking JSONL audit log dispatch"]
+      },
+      {
+        num: "09",
+        file: "09_The_7_Test_Adversarial_Suite_Matrix.png",
+        title: "Deterministic Security Verification — 7-Test Adversarial Suite",
+        script: "To empirically prove our security guarantees, we built an automated 7-test adversarial suite: Test 1 verifies legitimate authorized proxying (200 OK). Test 2 confirms anonymous connections are rejected at the TLS layer. Test 3 validates deny-by-default when an authorized user targets an unconfigured path (403 Forbidden). Test 4 proves micro-segmentation blocks lateral movement from Orders to Payments (403 Forbidden). Test 5 confirms own-domain access (200 OK). Test 6 verifies forged certificates with untrusted CAs are rejected. Test 7 verifies fail-closed resiliency against a dead backend (503 Service Unavailable). All 7 tests pass deterministically in 0.42 seconds.",
+        trapQ: "How does Test 7 verify a dead backend?",
+        trapA: "The policy routes /inventory/ to http://dead-host:9099. When the gateway fails to connect, it fails closed with HTTP 503 instead of crashing or leaking raw stack traces.",
+        points: ["100% deterministic pass rate across 7 attack scenarios", "Verifies 200, TLS_REJECT, 403 Forbidden, and 503 Service Unavailable", "Executes in 0.42 seconds via client.py"]
+      },
+      {
+        num: "10",
+        file: "10_Forensic_Audit_Log_JSONL_Architecture.png",
+        title: "Forensic Audit Logging — Structured JSONL Anatomy",
+        script: "Every access decision is recorded in an append-only JSONL audit ledger. Each record captures the UTC timestamp, source IP, authenticated SPIFFE identity, target backend, HTTP method, path, status code, decision, and explicit forensic reason—such as lateral_movement_blocked. This satisfies NIST SP 800-53 AU-2 and AU-3 audit compliance and gives security teams immediate non-repudiation telemetry.",
+        trapQ: "Can an attacker modify the audit logs?",
+        trapA: "The logs are mounted to a dedicated host volume and opened with O_APPEND | O_CREATE. In production, these streams are forwarded immediately via syslog/Fluentd to a remote SIEM.",
+        points: ["Conforms to NIST SP 800-53 (AU-2/AU-3) standards", "Explicit forensic denial reason on every rejected request", "Append-only O_APPEND file descriptor"]
+      },
+      {
+        num: "11",
+        file: "11_Latency_Overhead_Benchmark_Comparison.png",
+        title: "Empirical Performance — Latency Overhead Benchmark",
+        script: "We benchmarked 500 sequential requests comparing a direct unprotected backend against the ZetaShield Gateway. The unprotected baseline ran at ~0.75 ms P50. Through ZetaShield, P50 latency was ~1.35 ms. This demonstrates that full mTLS termination, X.509 SAN extraction, in-memory PBAC evaluation, reverse proxying, and audit logging adds only ~0.60 milliseconds of overhead—a sub-millisecond enforcement tax that is completely imperceptible to microservice workloads.",
+        trapQ: "What makes up the 0.60ms latency tax?",
+        trapA: "~0.28ms for TLS handshake and crypto verification, ~0.08ms for SAN parsing, ~0.04ms for in-memory PBAC map check, and ~0.20ms for reverse proxy TCP forward and audit log write.",
+        points: ["500 sequential benchmark requests", "Direct Backend: ~0.75 ms P50 vs. ZetaShield: ~1.35 ms P50", "Total Security Tax: ~0.60 ms (sub-millisecond)"]
+      },
+      {
+        num: "12",
+        file: "12_Design_Evolution_V01_to_V20.png",
+        title: "Systematic Engineering Evolution (V0.1 → V1.0 → V2.0)",
+        script: "This timeline demonstrates our iterative engineering discipline. In Review 1, the panel provided two primary critiques: first, that a 4-hop sidecar was too complex and slow; second, that the solution needed containerized deployability and automated verification. In V1.0, we consolidated the data plane into a 2-hop Go gateway. In V2.0, we containerized the entire mesh with Docker bridge isolation, implemented zero-downtime hot-reloading, and validated the system with our 7-test adversarial suite.",
+        trapQ: "Why didn't you stay with a sidecar pattern?",
+        trapA: "Sidecars make sense when you have Kubernetes managing lifecycle. For standalone or edge microservices, a consolidated gateway provides identical Zero-Trust guarantees with 50% fewer network hops.",
+        points: ["Directly addresses Review 1 academic panel critiques", "V0.1 Sidecar -> V1.0 Consolidated -> V2.0 Containerized Mesh", "Production-ready release milestone"]
+      },
+      {
+        num: "13",
+        file: "13_Go_Gateway_Concurrency_and_Internals.png",
+        title: "Go Data Plane Gateway — Concurrency & Internal Pipeline",
+        script: "The gateway engine is implemented in Go for memory safety and concurrency. We utilize crypto/tls.Listen configured with RequireAndVerifyClientCert. Each TCP connection spawns a lightweight Go goroutine (~2KB memory). We use a sync.RWMutex where read locks allow thousands of concurrent policy evaluations without lock contention, while write locks during hot-reloads execute in microseconds. Persistent HTTP transport pools eliminate socket churn.",
+        trapQ: "Why Go instead of Rust or C++?",
+        trapA: "Go is the industry standard for cloud-native network proxies (Docker, Kubernetes, Traefik). Its standard library crypto/tls and net/http packages are hardened, battle-tested, and garbage-collected.",
+        points: ["Lightweight Goroutine per connection (~2KB overhead)", "sync.RWMutex allows thousands of concurrent lock-free reads", "Persistent http.Transport connection pooling"]
+      },
+      {
+        num: "14",
+        file: "14_Live_Demo_Execution_Playbook.png",
+        title: "Live Demonstration Playbook — 4-Step Execution Flow",
+        script: "Our live demonstration follows four distinct verification milestones: Step 1 executes 'docker compose up -d' to launch the isolated mesh in seconds. Step 2 attempts 'curl localhost:9091' from the host to prove that backends are physically unroutable. Step 3 demonstrates hot-reloading by commenting out a rule in policy.docker.yaml and proving instant 403 enforcement without container restart. Step 4 inspects 'tail -n 5 audit.log.jsonl' to display the forensic reason for rejection.",
+        trapQ: "How long does the entire demo take?",
+        trapA: "Less than 2 minutes. The containers boot in under 5 seconds, and the test suite executes in 0.42 seconds.",
+        points: ["Step 1: One-command launch via Docker Compose", "Step 2: Proof of physical container isolation", "Step 3: Instant policy hot-reload flex", "Step 4: Non-repudiation forensic audit verification"]
+      }
+    ];
+
+    let currentIndex = 0;
+    const imgEl = document.getElementById("mainImage");
+    const notesEl = document.getElementById("notesPane");
+    const counterEl = document.getElementById("counter");
+    const thumbBar = document.getElementById("thumbBar");
+
+    function renderSlide(index) {
+      currentIndex = index;
+      const s = slides[index];
+      imgEl.src = s.file;
+      imgEl.classList.remove("zoomed");
+      counterEl.textContent = `${index + 1} / ${slides.length}`;
+
+      notesEl.innerHTML = `
+        <div class="slide-meta">
+          <div class="slide-num">Diagram ${s.num} of 14</div>
+          <div class="slide-title">${s.title}</div>
+        </div>
+
+        <div class="section-title">⏱ 30-Second Speaking Script</div>
+        <div class="script-box">"${s.script}"</div>
+
+        <div class="section-title">⚡ Potential Panel Trap Question</div>
+        <div class="trap-box">
+          <div class="trap-q">Q: ${s.trapQ}</div>
+          <div class="trap-a"><strong>Ans:</strong> ${s.trapA}</div>
+        </div>
+
+        <div class="section-title">📌 Key Takeaways to Point Out</div>
+        <ul class="key-points">
+          ${s.points.map(p => `<li>${p}</li>`).join("")}
+        </ul>
+      `;
+
+      // Update thumbnails
+      document.querySelectorAll(".thumb-btn").forEach((btn, i) => {
+        btn.classList.toggle("active", i === index);
+      });
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) renderSlide(currentIndex - 1);
+    }
+    function nextSlide() {
+      if (currentIndex < slides.length - 1) renderSlide(currentIndex + 1);
+    }
+    function toggleZoom() {
+      imgEl.classList.toggle("zoomed");
+    }
+
+    // Keyboard navigation
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") nextSlide();
+      else if (e.key === "ArrowLeft") prevSlide();
+    });
+
+    // Build bottom thumb bar
+    slides.forEach((s, i) => {
+      const btn = document.createElement("button");
+      btn.className = `thumb-btn ${i === 0 ? "active" : ""}`;
+      btn.textContent = `${s.num}: ${s.title.split("—")[0].trim().substring(0, 22)}...`;
+      btn.onclick = () => renderSlide(i);
+      thumbBar.appendChild(btn);
+    });
+
+    // Initial render
+    renderSlide(0);
+  </script>
+</body>
+</html>
