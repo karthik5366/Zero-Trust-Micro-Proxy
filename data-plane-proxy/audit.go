@@ -316,8 +316,7 @@ func (al *AuditLogger) GetRecentEntries(limit int) ([]AuditEntry, error) {
 	}
 
 	result := make([]AuditEntry, 0, len(lines)-start)
-	// Iterate in reverse (newest first)
-	for i := len(lines) - 1; i >= start; i-- {
+	for i := start; i < len(lines); i++ {
 		var e AuditEntry
 		if err := json.Unmarshal([]byte(lines[i]), &e); err == nil {
 			result = append(result, e)

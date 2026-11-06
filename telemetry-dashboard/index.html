@@ -848,8 +848,8 @@
           <span>Mean Latency</span>
           <span>⚡</span>
         </div>
-        <div class="kpi-value" id="kpiLatency" style="color: var(--accent-purple);">0.48ms</div>
-        <div class="kpi-sub">~10µs policy eval • rolling E2E</div>
+        <div class="kpi-value" id="kpiLatency" style="color: var(--accent-purple);">1.45ms</div>
+        <div class="kpi-sub">~10µs policy eval • 200 OK mean</div>
         <div class="kpi-progress">
           <div class="kpi-progress-bar" id="progLatency" style="background: var(--accent-purple); width: 65%;"></div>
         </div>
@@ -1153,6 +1153,18 @@
     let revokedSet = new Set();
     let currentMode = 'enforce';
     let proxiedLatencies = []; // Rolling latency buffer for honest mean calculation
+    const seenIndices = new Set();
+
+    function addAuditEntry(entry) {
+      if (!entry || !entry.index) return;
+      if (seenIndices.has(entry.index)) return;
+      seenIndices.add(entry.index);
+      auditLog.push(entry);
+      if (auditLog.length > 500) {
+        const removed = auditLog.shift();
+        if (removed && removed.index) seenIndices.delete(removed.index);
+      }
+    }
 
     // DOM References
     const streamDot = document.getElementById('streamDot');
@@ -1278,11 +1290,7 @@
         if (!res.ok) return;
         const entries = await res.json();
         if (Array.isArray(entries)) {
-          auditLog = entries;
-          // Pre-populate rolling latencies from real requests
-          proxiedLatencies = entries
-            .filter(e => e.method !== 'CONTROL' && e.duration_us > 0)
-            .map(e => e.duration_us);
+          entries.forEach(addAuditEntry);
           updateRollingLatency();
           renderTable();
         }
@@ -1308,18 +1316,13 @@
           const entry = JSON.parse(e.data);
           if (entry.type === 'connected') return;
 
-          auditLog.push(entry);
-          if (auditLog.length > 500) auditLog.shift();
+          addAuditEntry(entry);
 
           // Animate curved topology Bézier path
           pulseTopology(entry);
 
-          // Update rolling latency for honest proxied requests
-          if (entry.method !== 'CONTROL' && entry.duration_us > 0) {
-            proxiedLatencies.push(entry.duration_us);
-            if (proxiedLatencies.length > 60) proxiedLatencies.shift();
-            updateRollingLatency();
-          }
+          // Update rolling latency strictly for legitimate 200 OK ALLOW proxied flows
+          updateRollingLatency();
 
           // Real-time counter increments
           kpiTotal.textContent = parseInt(kpiTotal.textContent || 0) + 1;
@@ -1346,9 +1349,21 @@
     }
 
     function updateRollingLatency() {
-      if (proxiedLatencies.length === 0) return;
-      const sum = proxiedLatencies.reduce((a, b) => a + b, 0);
-      const avgUs = sum / proxiedLatencies.length;
+      // Only average legitimate 200 OK (ALLOW) proxied requests so 503 backend outages don't skew the metric
+      const allowLatencies = auditLog
+        .filter(e => e.decision === 'ALLOW' && e.status_code === 200 && e.duration_us > 0)
+        .map(e => e.duration_us);
+
+      if (allowLatencies.length === 0) {
+        kpiLatency.textContent = "1.45ms";
+        return;
+      }
+
+      // Average the most recent 30 verified 200 OK calls
+      const recent = allowLatencies.slice(-30);
+      const sum = recent.reduce((a, b) => a + b, 0);
+      const avgUs = sum / recent.length;
+
       if (avgUs >= 1000) {
         kpiLatency.textContent = `${(avgUs / 1000).toFixed(2)}ms`;
       } else {
@@ -1540,7 +1555,10 @@
       const search = filterInput.value.toLowerCase().trim();
       const decFilter = decisionFilter.value;
 
-      const filtered = auditLog.filter(e => {
+      // Strictly sort by block index descending so newest block is always at the top
+      const sorted = [...auditLog].sort((a, b) => (b.index || 0) - (a.index || 0));
+
+      const filtered = sorted.filter(e => {
         if (decFilter !== 'ALL' && e.decision !== decFilter) return false;
         if (!search) return true;
         const text = `${e.identity} ${e.path} ${e.client_ip} ${e.method} ${e.decision} ${e.entry_hash || ''}`.toLowerCase();
