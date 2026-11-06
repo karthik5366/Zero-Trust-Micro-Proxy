@@ -10,6 +10,8 @@ openssl req -x509 -new -nodes \
   -sha256 \
   -days 3650 \
   -out ca.pem \
-  -subj "/CN=ZetaShield Root CA"
+  -subj "/CN=ZetaShield Root CA" \
+  -addext "basicConstraints=critical,CA:TRUE" \
+  -addext "keyUsage=critical,keyCertSign,cRLSign"
 
 echo "Root CA created: ca.pem"

@@ -1,4 +1,4 @@
-// cmd/loadtest/main.go — ZetaShield V1.0 latency benchmark
+// cmd/loadtest/main.go — ZetaShield V2.1 latency benchmark
 //
 // Measures the cost of zero-trust enforcement:
 //
@@ -18,14 +18,19 @@ import (
 const requests = 500
 
 func newMTLSClient() *http.Client {
-	caPEM, err := os.ReadFile("../certs/ca.pem")
+	certsDir := os.Getenv("ZS_CERTS_DIR")
+	if certsDir == "" {
+		certsDir = "../certs"
+	}
+
+	caPEM, err := os.ReadFile(certsDir + "/ca.pem")
 	if err != nil {
-		panic("cannot read CA cert (run from data-plane-proxy/): " + err.Error())
+		panic("cannot read CA cert: " + err.Error())
 	}
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(caPEM)
 
-	cert, err := tls.LoadX509KeyPair("../certs/frontend-service.pem", "../certs/frontend-service-key.pem")
+	cert, err := tls.LoadX509KeyPair(certsDir+"/frontend-service.pem", certsDir+"/frontend-service-key.pem")
 	if err != nil {
 		panic("cannot load client cert: " + err.Error())
 	}
@@ -44,11 +49,22 @@ func main() {
 	direct := &http.Client{}
 	gateway := newMTLSClient()
 
-	fmt.Printf("ZetaShield V1.0 — Latency Benchmark (%d requests per mode)\n", requests)
-	fmt.Println("Backends + gateway must be running.")
+	directURL := os.Getenv("ZS_DIRECT_URL")
+	if directURL == "" {
+		directURL = "http://127.0.0.1:9091/orders/list"
+	}
+	gwURL := os.Getenv("ZS_GATEWAY_URL")
+	if gwURL == "" {
+		gwURL = "https://127.0.0.1:8443/orders/list"
+	}
 
-	directLats := measure(direct, "http://127.0.0.1:9091/orders/list")
-	gwLats := measure(gateway, "https://127.0.0.1:8443/orders/list")
+	fmt.Printf("ZetaShield V2.1 — Latency Benchmark (%d requests per mode)\n", requests)
+	fmt.Println("Backends + gateway must be running.")
+	fmt.Printf("Direct URL:  %s\n", directURL)
+	fmt.Printf("Gateway URL: %s\n", gwURL)
+
+	directLats := measure(direct, directURL)
+	gwLats := measure(gateway, gwURL)
 
 	dMean, dP50, dP99 := stats(directLats)
 	gMean, gP50, gP99 := stats(gwLats)
@@ -60,7 +76,7 @@ func main() {
 	fmt.Println("──────────────────────────────────────────────────────────")
 	fmt.Printf("\nZero-Trust enforcement overhead (median): %s\n", gP50-dP50)
 	fmt.Println("Overhead includes: mTLS session + SAN identity extraction")
-	fmt.Println("+ policy evaluation + routing + audit log write.")
+	fmt.Println("+ policy evaluation + routing + SHA-256 async audit queuing.")
 }
 
 func measure(c *http.Client, url string) []time.Duration {
@@ -70,6 +86,10 @@ func measure(c *http.Client, url string) []time.Duration {
 		resp, err := c.Get(url)
 		if err != nil {
 			fmt.Println("\nrequest failed:", err)
+			os.Exit(1)
+		}
+		if resp.StatusCode != http.StatusOK {
+			fmt.Printf("\nrequest failed with status: %d (expected 200 OK)\n", resp.StatusCode)
 			os.Exit(1)
 		}
 		resp.Body.Close()

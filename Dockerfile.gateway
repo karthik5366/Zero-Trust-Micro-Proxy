@@ -5,10 +5,13 @@ COPY data-plane-proxy/go.mod data-plane-proxy/go.sum ./
 RUN go mod download
 COPY data-plane-proxy/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /zeta-gateway .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /verifyaudit ./cmd/verifyaudit
 
 FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /zeta-gateway /app/zeta-gateway
-EXPOSE 8443
+COPY --from=builder /verifyaudit /app/verifyaudit
+COPY telemetry-dashboard/ /app/dashboard/
+EXPOSE 8443 8444
 ENTRYPOINT ["/app/zeta-gateway"]

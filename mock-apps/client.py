@@ -9,8 +9,8 @@ if not os.path.basename(os.getcwd()) == 'mock-apps':
     print("ERROR: Please run this script from the 'mock-apps' directory.")
     sys.exit(1)
 
-GATEWAY_URL = "https://127.0.0.1:8443"
-CERTS_DIR = "../certs"
+GATEWAY_URL = os.environ.get("ZS_GATEWAY_URL", "https://127.0.0.1:8443")
+CERTS_DIR = os.environ.get("ZS_CERTS_DIR", "../certs")
 
 def make_request(test_name, method, path, cert_file, key_file):
     print(f"\n[{test_name}]")
@@ -34,7 +34,7 @@ def make_request(test_name, method, path, cert_file, key_file):
             print(f"  Result: {status} OK")
             return status
             
-    except ssl.SSLError as e:
+    except (ssl.SSLError, ConnectionResetError) as e:
         print(f"  Result: TLS_REJECT (Handshake Failed)")
         print(f"  Detail: {str(e).split(':')[-1].strip()}")
         return "TLS_REJECT"
@@ -73,10 +73,8 @@ def main():
         req = urllib.request.Request(f"{GATEWAY_URL}/orders/list")
         urllib.request.urlopen(req, context=ctx)
         print("  Result: 200 OK (FAIL - Should have been rejected)")
-    except ssl.SSLError:
+    except (ssl.SSLError, urllib.error.URLError, ConnectionResetError):
         print("  Result: TLS_REJECT (Handshake Failed - No Identity)")
-    except urllib.error.URLError:
-        print("  Result: TLS_REJECT (Connection Reset)")
 
     # 3. Authorized Identity, Unauthorized Path (Deny-by-Default)
     make_request("TEST 3: DENY-BY-DEFAULT (frontend -> admin)", 

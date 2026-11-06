@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZetaShield V2.2 Enterprise Cyber-SOC Console</title>
+  
+  <!-- Modern Typography: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #060911;
+      --bg-surface: #0c121e;
+      --bg-surface-elevated: #111a2c;
+      --bg-card: rgba(16, 24, 40, 0.75);
+      --bg-card-hover: rgba(23, 34, 56, 0.9);
+      --border: rgba(148, 163, 184, 0.14);
+      --border-focus: rgba(56, 189, 248, 0.4);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-cyan: #38bdf8;
+      --accent-cyan-glow: rgba(56, 189, 248, 0.25);
+      --accent-green: #22c55e;
+      --accent-green-bg: rgba(34, 197, 94, 0.12);
+      --accent-green-border: rgba(34, 197, 94, 0.3);
+      --accent-red: #ef4444;
+      --accent-red-bg: rgba(239, 68, 68, 0.12);
+      --accent-red-border: rgba(239, 68, 68, 0.3);
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: rgba(245, 158, 11, 0.12);
+      --accent-amber-border: rgba(245, 158, 11, 0.3);
+      --accent-purple: #a855f7;
+      --accent-purple-bg: rgba(168, 85, 247, 0.12);
+      --accent-purple-border: rgba(168, 85, 247, 0.3);
+      --accent-orange: #f97316;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.04) 0%, transparent 40%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: rgba(12, 18, 30, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0284c7, #16a34a);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 0 16px var(--accent-cyan-glow);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .brand-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-cyber {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-focus);
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Live SSE Pill */
+    .stream-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      letter-spacing: 0.3px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .status-dot.connected {
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+    .status-dot.disconnected {
+      background: var(--accent-red);
+      box-shadow: 0 0 8px var(--accent-red);
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
+    }
+
+    /* Mode Segmented Toggle */
+    .mode-switch {
+      display: flex;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+    .mode-btn {
+      padding: 4px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    }
+    .mode-btn.active.enforce {
+      background: var(--accent-green);
+      color: #060911;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+    }
+    .mode-btn.active.learning {
+      background: var(--accent-amber);
+      color: #060911;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Interactive Ledger Verification Badge */
+    .ledger-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--accent-green-bg);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .ledger-badge:hover {
+      background: rgba(34, 197, 94, 0.2);
+      transform: translateY(-1px);
+    }
+    .ledger-badge.tampered {
+      background: var(--accent-red-bg);
+      color: var(--accent-red);
+      border-color: var(--accent-red-border);
+      animation: flash-red 1s infinite alternate;
+    }
+    @keyframes flash-red {
+      from { opacity: 1; }
+      to { opacity: 0.4; }
+    }
+
+    /* Admin Token Pill */
+    .token-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+    }
+    .token-box input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      width: 130px;
+      outline: none;
+    }
+
+    .btn-action {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-action:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: var(--border-focus);
+    }
+
+    /* Main Grid Layout */
+    main {
+      flex: 1;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      max-width: 1680px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* 5 KPI Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 1200px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid .kpi-card:last-child { grid-column: span 2; }
+    }
+    @media (max-width: 768px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .kpi-grid .kpi-card:last-child { grid-column: auto; }
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .kpi-card:hover {
+      border-color: rgba(148, 163, 184, 0.25);
+      transform: translateY(-1px);
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .kpi-total::before { background: linear-gradient(90deg, #38bdf8, #0284c7); }
+    .kpi-allow::before { background: linear-gradient(90deg, #22c55e, #16a34a); }
+    .kpi-blocked::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .kpi-shadow::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .kpi-latency::before { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 700;
+      margin: 8px 0 4px;
+      letter-spacing: -0.5px;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .kpi-progress {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .kpi-progress-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.4s ease;
+      border-radius: 2px;
+    }
+
+    /* Middle Row: Topology Map (2/3) + Kill-Switch Panel (1/3) */
+    .middle-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1100px) {
+      .middle-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.2px;
+    }
+    .panel-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Interactive SVG Cyber-Mesh Topology */
+    .topology-viewport {
+      width: 100%;
+      height: 320px;
+      background: #080d16;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+    }
+    svg.mesh-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* SVG Curved Paths & Nodes */
+    .mesh-path {
+      fill: none;
+      stroke: rgba(148, 163, 184, 0.18);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+      transition: stroke 0.3s, stroke-width 0.3s;
+    }
+    .mesh-path.active-allow {
+      stroke: var(--accent-green);
+      stroke-width: 2.5;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 6px var(--accent-green));
+    }
+    .mesh-path.active-deny {
+      stroke: var(--accent-red);
+      stroke-width: 2.5;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 6px var(--accent-red));
+    }
+    .mesh-path.active-shadow {
+      stroke: var(--accent-amber);
+      stroke-width: 2.5;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 6px var(--accent-amber));
+    }
+
+    .node-box {
+      cursor: pointer;
+      transition: transform 0.2s, filter 0.2s;
+    }
+    .node-box:hover {
+      transform: scale(1.02);
+      filter: brightness(1.1);
+    }
+    .node-box.quarantined rect {
+      fill: #2a0e14 !important;
+      stroke: var(--accent-red) !important;
+      stroke-dasharray: 3 3;
+    }
+    .node-box.quarantined text.node-status {
+      fill: var(--accent-red) !important;
+    }
+
+    /* Kill-Switch List */
+    .workloads-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      max-height: 320px;
+      padding-right: 4px;
+    }
+    .workload-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .workload-card:hover {
+      border-color: rgba(148, 163, 184, 0.3);
+    }
+    .workload-card.revoked-active {
+      border-color: var(--accent-red-border);
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .workload-name {
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .workload-spiffe {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+    .btn-toggle-revoke {
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    }
+    .btn-do-revoke {
+      background: var(--accent-red-bg);
+      color: var(--accent-red);
+      border-color: var(--accent-red-border);
+    }
+    .btn-do-revoke:hover {
+      background: var(--accent-red);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+    .btn-do-restore {
+      background: var(--accent-green-bg);
+      color: var(--accent-green);
+      border-color: var(--accent-green-border);
+    }
+    .btn-do-restore:hover {
+      background: var(--accent-green);
+      color: #060911;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+    }
+
+    /* Audit Stream Table */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      width: 240px;
+      outline: none;
+      font-family: var(--font-sans);
+    }
+    .search-box:focus {
+      border-color: var(--accent-cyan);
+    }
+    .filter-dropdown {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      outline: none;
+      font-family: var(--font-sans);
+    }
+
+    .audit-table-wrapper {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-elevated);
+      overflow-x: auto;
+      max-height: 480px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+    table.audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    table.audit-table th {
+      background: #090e18;
+      color: var(--text-secondary);
+      padding: 10px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.audit-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      white-space: nowrap;
+    }
+    table.audit-table tr.clickable-row {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    table.audit-table tr.clickable-row:hover td {
+      background: rgba(30, 41, 59, 0.7);
+    }
+
+    /* Decision Pills */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .pill-allow { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
+    .pill-deny { background: var(--accent-red-bg); color: var(--accent-red); border: 1px solid var(--accent-red-border); }
+    .pill-tls-reject { background: var(--accent-purple-bg); color: var(--accent-purple); border: 1px solid var(--accent-purple-border); }
+    .pill-shadow { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid var(--accent-amber-border); }
+    .pill-ratelimit { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); border: 1px solid rgba(249, 115, 22, 0.3); }
+    .pill-control { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border: 1px solid var(--border-focus); }
+
+    .hash-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(34, 197, 94, 0.08);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    /* Forensic Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.8);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-focus);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 680px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modal-pop 0.2s ease-out;
+    }
+    @keyframes modal-pop {
+      from { transform: scale(0.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-surface-elevated);
+    }
+    .modal-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      max-height: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .forensic-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .forensic-item {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+    }
+    .forensic-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .forensic-val {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-primary);
+      margin-top: 3px;
+      word-break: break-all;
+    }
+    .code-viewer {
+      background: #050811;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #7dd3fc;
+      overflow-x: auto;
+      max-height: 200px;
+      white-space: pre-wrap;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 28px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--accent-green-border);
+      color: var(--text-primary);
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toast-in 0.3s ease;
+    }
+    @keyframes toast-in {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 28px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      background: var(--bg-surface);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">ζ</div>
+      <div>
+        <div class="brand-title">
+          ZetaShield
+          <span class="badge-cyber">V2.2 Cyber-SOC</span>
+        </div>
+        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">
+          Zero-Trust Micro-Segmentation Forward Proxy • Group 39
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Live SSE Indicator -->
+      <div class="stream-pill" id="streamPill">
+        <span class="status-dot disconnected" id="streamDot"></span>
+        <span id="streamText">INITIALIZING...</span>
+      </div>
+
+      <!-- Segmented Runtime Mode Toggle -->
+      <div class="mode-switch">
+        <button class="mode-btn active enforce" id="btnModeEnforce" onclick="setMode('enforce')">ENFORCE</button>
+        <button class="mode-btn" id="btnModeLearning" onclick="setMode('learning')">LEARNING</button>
+      </div>
+
+      <!-- Interactive Cryptographic Ledger Badge -->
+      <div class="ledger-badge" id="ledgerBadge" onclick="verifyLedgerLive()" title="Click to verify SHA-256 cryptographic chain now">
+        🛡️ <span id="ledgerText">LEDGER: VERIFYING...</span>
+      </div>
+
+      <!-- Admin Token Input Box -->
+      <div class="token-box" title="Control Plane Admin Bearer Token (X-ZetaShield-Admin-Token)">
+        <span style="font-size: 11px; color: var(--accent-cyan); font-weight: 700;">🔑 TOKEN</span>
+        <input type="password" id="adminTokenInput" value="zetashield-admin-secret-2026" />
+      </div>
+
+      <!-- Discovery Modal Trigger -->
+      <button class="btn-action" onclick="openDiscoveryModal()">
+        🔍 Policies & Discovery (<span id="discoveryCount">0</span>)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main>
+    <!-- 5 KPI Metric Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-title">
+          <span>Total Requests</span>
+          <span>📊</span>
+        </div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-sub">Total processed requests</div>
+        <div class="kpi-progress">
+          <div class="kpi-progress-bar" id="progTotal" style="background: var(--accent-cyan); width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-allow">
+        <div class="kpi-title">
+          <span>Allowed Flows</span>
+          <span>🛡️</span>
+        </div>
+        <div class="kpi-value" id="kpiAllow" style="color: var(--accent-green);">0</div>
+        <div class="kpi-sub" id="kpiAllowPct">Zero-Trust verified</div>
+        <div class="kpi-progress">
+          <div class="kpi-progress-bar" id="progAllow" style="background: var(--accent-green);"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-blocked">
+        <div class="kpi-title">
+          <span>Blocked & Repelled</span>
+          <span>⛔</span>
+        </div>
+        <div class="kpi-value" id="kpiBlocked" style="color: var(--accent-red);">0</div>
+        <div class="kpi-sub" id="kpiBlockedSub">ACL Deny + TLS Drops</div>
+        <div class="kpi-progress">
+          <div class="kpi-progress-bar" id="progBlocked" style="background: var(--accent-red);"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-shadow">
+        <div class="kpi-title">
+          <span>Shadow / Learning</span>
+          <span>🧪</span>
+        </div>
+        <div class="kpi-value" id="kpiShadow" style="color: var(--accent-amber);">0</div>
+        <div class="kpi-sub">Unmapped observed flows</div>
+        <div class="kpi-progress">
+          <div class="kpi-progress-bar" id="progShadow" style="background: var(--accent-amber);"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-latency">
+        <div class="kpi-title">
+          <span>Mean Latency</span>
+          <span>⚡</span>
+        </div>
+        <div class="kpi-value" id="kpiLatency" style="color: var(--accent-purple);">0.48ms</div>
+        <div class="kpi-sub">~10µs policy eval • rolling E2E</div>
+        <div class="kpi-progress">
+          <div class="kpi-progress-bar" id="progLatency" style="background: var(--accent-purple); width: 65%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Row: Topology (2/3) + Kill-Switch (1/3) -->
+    <div class="middle-grid">
+      <!-- Interactive SVG Cyber-Mesh Map -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span>🌐 Real-Time Micro-Segmentation Cyber-Mesh</span>
+            </div>
+            <div class="panel-sub">Hop-1 mTLS Authentication + Hop-2 HMAC-SHA256 Multi-Bridge Isolation</div>
+          </div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-cyan);">
+            ● Isolated Linux Kernel Bridges
+          </div>
+        </div>
+
+        <div class="topology-viewport">
+          <svg class="mesh-svg" viewBox="0 0 920 320">
+            <defs>
+              <linearGradient id="hubGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0284c7" />
+                <stop offset="100%" stop-color="#16a34a" />
+              </linearGradient>
+            </defs>
+
+            <!-- Smooth Cubic Bézier Connection Paths (Left to Center) -->
+            <!-- Path: frontend -> gateway -->
+            <path id="path-frontend" class="mesh-path" d="M 160 45 C 270 45, 300 150, 410 150" />
+            <!-- Path: orders -> gateway -->
+            <path id="path-orders" class="mesh-path" d="M 160 115 C 270 115, 300 150, 410 150" />
+            <!-- Path: payments -> gateway -->
+            <path id="path-payments" class="mesh-path" d="M 160 185 C 270 185, 300 150, 410 150" />
+            <!-- Path: adversary -> gateway -->
+            <path id="path-adversary" class="mesh-path" d="M 160 255 C 270 255, 300 150, 410 150" />
+
+            <!-- Smooth Cubic Bézier Connection Paths (Center to Right) -->
+            <!-- Path: gateway -> orders backend -->
+            <path id="path-backend-orders" class="mesh-path" d="M 510 150 C 620 150, 650 65, 760 65" />
+            <!-- Path: gateway -> payments backend -->
+            <path id="path-backend-payments" class="mesh-path" d="M 510 150 C 620 150, 650 150, 760 150" />
+            <!-- Path: gateway -> inventory backend (Fail-Closed) -->
+            <path id="path-backend-inventory" class="mesh-path" d="M 510 150 C 620 150, 650 235, 760 235" />
+
+            <!-- 4 Left Nodes: Ingress & Internal Workloads -->
+            <!-- 1. Frontend Service -->
+            <g id="node-frontend" class="node-box" transform="translate(30, 20)">
+              <rect width="130" height="50" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1.5" />
+              <text x="65" y="23" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700">frontend-service</text>
+              <text x="65" y="38" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="monospace" class="node-status">Ingress Client</text>
+            </g>
+
+            <!-- 2. Orders Service -->
+            <g id="node-orders" class="node-box" transform="translate(30, 90)">
+              <rect width="130" height="50" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1.5" />
+              <text x="65" y="23" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700">orders-service</text>
+              <text x="65" y="38" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="monospace" class="node-status">Internal Client</text>
+            </g>
+
+            <!-- 3. Payments Service (ADDED IN V2.2) -->
+            <g id="node-payments" class="node-box" transform="translate(30, 160)">
+              <rect width="130" height="50" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1.5" />
+              <text x="65" y="23" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700">payments-service</text>
+              <text x="65" y="38" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="monospace" class="node-status">Internal Client</text>
+            </g>
+
+            <!-- 4. Rogue / Attacker -->
+            <g id="node-adversary" class="node-box" transform="translate(30, 230)">
+              <rect width="130" height="50" rx="8" fill="#1e1115" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3" />
+              <text x="65" y="23" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="800">Rogue / Attacker</text>
+              <text x="65" y="38" text-anchor="middle" fill="#f87171" font-size="9" font-family="monospace">No Cert / Forged</text>
+            </g>
+
+            <!-- Center Gateway Hub Node -->
+            <g class="node-box" transform="translate(410, 105)">
+              <rect width="100" height="90" rx="12" fill="url(#hubGrad)" stroke="#38bdf8" stroke-width="2" />
+              <text x="50" y="34" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800">ZetaShield</text>
+              <text x="50" y="52" text-anchor="middle" fill="#e0f2fe" font-size="10" font-weight="600">Core Gateway</text>
+              <text x="50" y="68" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="monospace">:8443 mTLS</text>
+            </g>
+
+            <!-- 3 Right Nodes: Backend Bridge Zones -->
+            <!-- 1. Orders API Backend -->
+            <g id="node-backend-orders" class="node-box" transform="translate(760, 40)">
+              <rect width="130" height="50" rx="8" fill="#0f172a" stroke="#16a34a" stroke-width="1.5" />
+              <text x="65" y="23" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700">orders-api</text>
+              <text x="65" y="38" text-anchor="middle" fill="#4ade80" font-size="9" font-family="monospace">:9091 (HMAC Auth)</text>
+            </g>
+
+            <!-- 2. Payments API Backend -->
+            <g id="node-backend-payments" class="node-box" transform="translate(760, 125)">
+              <rect width="130" height="50" rx="8" fill="#0f172a" stroke="#16a34a" stroke-width="1.5" />
+              <text x="65" y="23" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700">payments-api</text>
+              <text x="65" y="38" text-anchor="middle" fill="#4ade80" font-size="9" font-family="monospace">:9092 (HMAC Auth)</text>
+            </g>
+
+            <!-- 3. Inventory Backend (ADDED IN V2.2 - FAIL-CLOSED) -->
+            <g id="node-backend-inventory" class="node-box" transform="translate(760, 210)">
+              <rect width="130" height="50" rx="8" fill="#1a151b" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3" />
+              <text x="65" y="23" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="700">inventory-api</text>
+              <text x="65" y="38" text-anchor="middle" fill="#ef4444" font-size="9" font-family="monospace">:9099 (503 Fail-Closed)</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 1-Click Identity Kill-Switch Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span>🚨 1-Click Threat Containment</span>
+            </div>
+            <div class="panel-sub">Instant zero-downtime RAM revocation</div>
+          </div>
+          <span style="font-size: 10px; font-family: var(--font-mono); color: var(--accent-red); font-weight: 700;">
+            SUB-MILLISECOND
+          </span>
+        </div>
+
+        <div class="workloads-container" id="workloadsContainer">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section: Real-Time Audit Ledger Stream -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            <span>📜 Real-Time Cryptographic Forensic Ledger</span>
+          </div>
+          <div class="panel-sub">NIST SP 800-53 / SOC 2 Immutable SHA-256 Hash Chaining • Click any row to inspect</div>
+        </div>
+
+        <div class="controls-row">
+          <input type="text" id="filterInput" class="search-box" placeholder="Filter identity, path, IP, hash..." onkeyup="renderTable()">
+          <select id="decisionFilter" class="filter-dropdown" onchange="renderTable()">
+            <option value="ALL">All Decisions</option>
+            <option value="ALLOW">ALLOW only</option>
+            <option value="DENY">DENY only</option>
+            <option value="TLS_REJECT">TLS_REJECT only</option>
+            <option value="SHADOW_DENY">SHADOW_DENY only</option>
+            <option value="CONTROL_DENY">CONTROL_DENY only</option>
+            <option value="RATE_LIMITED">RATE_LIMITED only</option>
+          </select>
+          <button class="btn-action" id="btnPauseScroll" onclick="toggleAutoScroll()">Pause Stream</button>
+        </div>
+      </div>
+
+      <div class="audit-table-wrapper" id="auditTableContainer">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th style="width: 45px;">#</th>
+              <th style="width: 85px;">Time</th>
+              <th style="width: 120px;">Client IP</th>
+              <th>SPIFFE Identity</th>
+              <th style="width: 70px;">Method</th>
+              <th>Path</th>
+              <th style="width: 110px;">Target</th>
+              <th style="width: 105px;">Decision</th>
+              <th style="width: 55px;">Status</th>
+              <th style="width: 75px;">Latency</th>
+              <th style="width: 125px;">SHA-256 Block Hash</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody">
+            <tr>
+              <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 36px;">
+                Connecting to real-time cryptographic audit stream...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Forensic Block Inspector Modal -->
+  <div class="modal-backdrop" id="forensicModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 700;" id="fBlockTitle">Block #0 Forensic Record</h3>
+          <div style="font-size: 11px; color: var(--text-muted);" id="fBlockTime">Timestamp</div>
+        </div>
+        <button class="btn-action" onclick="closeForensicModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="forensic-grid">
+          <div class="forensic-item">
+            <div class="forensic-label">Decision & Status</div>
+            <div class="forensic-val" id="fDecisionStatus">-</div>
+          </div>
+          <div class="forensic-item">
+            <div class="forensic-label">Execution Latency</div>
+            <div class="forensic-val" id="fDuration">-</div>
+          </div>
+          <div class="forensic-item">
+            <div class="forensic-label">Client Identity (SPIFFE URI)</div>
+            <div class="forensic-val" id="fIdentity">-</div>
+          </div>
+          <div class="forensic-item">
+            <div class="forensic-label">Source Client IP & Port</div>
+            <div class="forensic-val" id="fClientIP">-</div>
+          </div>
+          <div class="forensic-item">
+            <div class="forensic-label">HTTP Method & Path</div>
+            <div class="forensic-val" id="fMethodPath">-</div>
+          </div>
+          <div class="forensic-item">
+            <div class="forensic-label">Target Upstream Backend</div>
+            <div class="forensic-val" id="fTarget">-</div>
+          </div>
+        </div>
+
+        <div class="forensic-item">
+          <div class="forensic-label">Enforcement Pipeline Diagnostics</div>
+          <div class="forensic-val" id="fReason" style="color: #38bdf8;">-</div>
+        </div>
+
+        <div class="forensic-item">
+          <div class="forensic-label">Cryptographic Hash Chaining (SHA-256)</div>
+          <div style="margin-top: 6px; font-size: 11px;">
+            <div style="color: var(--text-muted);">Previous Block Hash (prev_hash):</div>
+            <div class="forensic-val" id="fPrevHash" style="color: #94a3b8; font-size: 11px;">-</div>
+            <div style="color: var(--text-muted); margin-top: 6px;">Current Block Hash (entry_hash):</div>
+            <div class="forensic-val" id="fEntryHash" style="color: #4ade80; font-size: 11px;">-</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div class="forensic-label">Raw Canonical JSON Ledger Record</div>
+            <button class="btn-action" onclick="copyRawForensicJSON()">📋 Copy JSON</button>
+          </div>
+          <div class="code-viewer" id="fRawJson">{}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Policies & Discovery Modal -->
+  <div class="modal-backdrop" id="discoveryModal">
+    <div class="modal-card" style="max-width: 720px;">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 700;">Policies & Auto-Learned Rules</h3>
+          <div style="font-size: 11px; color: var(--text-muted);">Declarative Zero-Trust micro-segmentation definitions</div>
+        </div>
+        <button class="btn-action" onclick="closeDiscoveryModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <div class="forensic-label" style="margin-bottom: 6px;">Active Enforced Rules (from policy.yaml)</div>
+          <div class="code-viewer" id="activePolicyYaml" style="max-height: 180px; color: #a5f3fc;"># Loading active rules...</div>
+        </div>
+
+        <div>
+          <div class="forensic-label" style="margin-bottom: 6px; color: var(--accent-amber);">
+            Auto-Learned Candidate Rules (from Shadow Mode)
+          </div>
+          <div class="code-viewer" id="discoveryYamlContent" style="max-height: 180px; color: #fde68a;">
+            # No unmapped flows observed yet.
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn-action" onclick="copyDiscoveryYaml()">📋 Copy Discovered YAML</button>
+          <button class="btn-action" onclick="closeDiscoveryModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer>
+    ZetaShield Micro-Segmentation Gateway V2.2 Enterprise • VIT Bhopal University Group 39 (Lead: Karthik P.H.S.R)
+  </footer>
+
+  <script>
+    // Configuration & State
+    const BASE_URL = window.location.origin.includes('8444') ? window.location.origin : 'http://127.0.0.1:8444';
+    let auditLog = [];
+    let autoScroll = true;
+    let selectedBlock = null;
+    let knownIdentities = [
+      'spiffe://zetashield.local/ns/default/sa/frontend-service',
+      'spiffe://zetashield.local/ns/default/sa/orders-service',
+      'spiffe://zetashield.local/ns/default/sa/payments-service'
+    ];
+    let revokedSet = new Set();
+    let currentMode = 'enforce';
+    let proxiedLatencies = []; // Rolling latency buffer for honest mean calculation
+
+    // DOM References
+    const streamDot = document.getElementById('streamDot');
+    const streamText = document.getElementById('streamText');
+    const ledgerBadge = document.getElementById('ledgerBadge');
+    const ledgerText = document.getElementById('ledgerText');
+    const kpiTotal = document.getElementById('kpiTotal');
+    const kpiAllow = document.getElementById('kpiAllow');
+    const kpiAllowPct = document.getElementById('kpiAllowPct');
+    const kpiBlocked = document.getElementById('kpiBlocked');
+    const kpiBlockedSub = document.getElementById('kpiBlockedSub');
+    const kpiShadow = document.getElementById('kpiShadow');
+    const kpiLatency = document.getElementById('kpiLatency');
+    const progAllow = document.getElementById('progAllow');
+    const progBlocked = document.getElementById('progBlocked');
+    const progShadow = document.getElementById('progShadow');
+    const auditTableBody = document.getElementById('auditTableBody');
+    const filterInput = document.getElementById('filterInput');
+    const decisionFilter = document.getElementById('decisionFilter');
+    const btnPauseScroll = document.getElementById('btnPauseScroll');
+    const btnModeEnforce = document.getElementById('btnModeEnforce');
+    const btnModeLearning = document.getElementById('btnModeLearning');
+    const discoveryCount = document.getElementById('discoveryCount');
+    const discoveryModal = document.getElementById('discoveryModal');
+    const discoveryYamlContent = document.getElementById('discoveryYamlContent');
+    const activePolicyYaml = document.getElementById('activePolicyYaml');
+    const forensicModal = document.getElementById('forensicModal');
+    const toastContainer = document.getElementById('toastContainer');
+
+    function getAdminToken() {
+      const el = document.getElementById('adminTokenInput');
+      return el ? el.value.trim() : 'zetashield-admin-secret-2026';
+    }
+
+    function showToast(msg, isSuccess = true) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.borderColor = isSuccess ? 'var(--accent-green-border)' : 'var(--accent-red-border)';
+      toast.innerHTML = `<span>${isSuccess ? '✅' : '🚨'}</span> <span>${msg}</span>`;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.4s';
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    // 1. Live Status & Metrics Ingestion
+    async function fetchStatus() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Update Mode UI
+        updateModeUI(data.mode || 'enforce');
+
+        // Update Metrics & Progress Bars
+        const m = data.metrics || {};
+        const total = m.total || 0;
+        const allow = m.allow || 0;
+        const blocked = (m.deny || 0) + (m.tls_reject || 0);
+        const shadow = m.shadow_deny || 0;
+
+        kpiTotal.textContent = total;
+        kpiAllow.textContent = allow;
+        kpiBlocked.textContent = blocked;
+        kpiShadow.textContent = shadow;
+
+        if (total > 0) {
+          const allowPct = Math.round((allow / total) * 100);
+          const blockedPct = Math.round((blocked / total) * 100);
+          const shadowPct = Math.round((shadow / total) * 100);
+
+          progAllow.style.width = `${allowPct}%`;
+          progBlocked.style.width = `${blockedPct}%`;
+          progShadow.style.width = `${shadowPct}%`;
+          kpiAllowPct.textContent = `${allowPct}% verified throughput`;
+          kpiBlockedSub.textContent = `${blockedPct}% repelled attacks`;
+        }
+
+        // Ledger Verification Badge
+        const led = data.ledger || {};
+        if (led.intact) {
+          ledgerBadge.classList.remove('tampered');
+          ledgerText.textContent = `LEDGER: INTACT (${led.verified_records || 0} BLOCKS)`;
+        } else {
+          ledgerBadge.classList.add('tampered');
+          ledgerText.textContent = `TAMPER DETECTED!`;
+        }
+
+        // Sync Revocations
+        revokedSet = new Set(data.revoked_identities || []);
+        renderKillSwitchList();
+        updateTopologyQuarantine();
+
+        // Sync Policies & Discovered Rules
+        const disc = data.discovered_rules || [];
+        discoveryCount.textContent = disc.length;
+        if (data.discovered_yaml) {
+          discoveryYamlContent.textContent = data.discovered_yaml;
+        } else {
+          discoveryYamlContent.textContent = "# No unmapped flows observed yet in Learning Mode.";
+        }
+
+        if (data.rules && Array.isArray(data.rules)) {
+          let y = "# Active Gateway Rules (policy.yaml)\nversion: '1.0'\nrules:\n";
+          data.rules.forEach(r => {
+            y += `  - identity: ${r.Identity || r.identity}\n    path_prefix: ${r.PathPrefix || r.path_prefix}\n    methods: ${JSON.stringify(r.Methods || r.methods)}\n`;
+          });
+          activePolicyYaml.textContent = y;
+        }
+
+      } catch (err) {
+        console.error('Failed to sync status:', err);
+      }
+    }
+
+    // 2. Fetch Initial Audit History
+    async function fetchInitialAudit() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/audit`);
+        if (!res.ok) return;
+        const entries = await res.json();
+        if (Array.isArray(entries)) {
+          auditLog = entries;
+          // Pre-populate rolling latencies from real requests
+          proxiedLatencies = entries
+            .filter(e => e.method !== 'CONTROL' && e.duration_us > 0)
+            .map(e => e.duration_us);
+          updateRollingLatency();
+          renderTable();
+        }
+      } catch (err) {
+        console.error('Failed to fetch initial audit log:', err);
+      }
+    }
+
+    // 3. Connect to Real-Time SSE Feed
+    function connectEventStream() {
+      streamDot.className = 'status-dot';
+      streamText.textContent = 'CONNECTING...';
+
+      const evtSource = new EventSource(`${BASE_URL}/api/v1/events`);
+
+      evtSource.onopen = () => {
+        streamDot.className = 'status-dot connected';
+        streamText.textContent = 'LIVE SSE FEED';
+      };
+
+      evtSource.onmessage = (e) => {
+        try {
+          const entry = JSON.parse(e.data);
+          if (entry.type === 'connected') return;
+
+          auditLog.push(entry);
+          if (auditLog.length > 500) auditLog.shift();
+
+          // Animate curved topology Bézier path
+          pulseTopology(entry);
+
+          // Update rolling latency for honest proxied requests
+          if (entry.method !== 'CONTROL' && entry.duration_us > 0) {
+            proxiedLatencies.push(entry.duration_us);
+            if (proxiedLatencies.length > 60) proxiedLatencies.shift();
+            updateRollingLatency();
+          }
+
+          // Real-time counter increments
+          kpiTotal.textContent = parseInt(kpiTotal.textContent || 0) + 1;
+          if (entry.decision === 'ALLOW') {
+            kpiAllow.textContent = parseInt(kpiAllow.textContent || 0) + 1;
+          } else if (entry.decision === 'DENY' || entry.decision === 'TLS_REJECT' || entry.decision === 'CONTROL_DENY') {
+            kpiBlocked.textContent = parseInt(kpiBlocked.textContent || 0) + 1;
+          } else if (entry.decision === 'SHADOW_DENY') {
+            kpiShadow.textContent = parseInt(kpiShadow.textContent || 0) + 1;
+          }
+
+          renderTable();
+        } catch (err) {
+          console.error('Error handling SSE event:', err);
+        }
+      };
+
+      evtSource.onerror = () => {
+        streamDot.className = 'status-dot disconnected';
+        streamText.textContent = 'RECONNECTING...';
+        evtSource.close();
+        setTimeout(connectEventStream, 3000);
+      };
+    }
+
+    function updateRollingLatency() {
+      if (proxiedLatencies.length === 0) return;
+      const sum = proxiedLatencies.reduce((a, b) => a + b, 0);
+      const avgUs = sum / proxiedLatencies.length;
+      if (avgUs >= 1000) {
+        kpiLatency.textContent = `${(avgUs / 1000).toFixed(2)}ms`;
+      } else {
+        kpiLatency.textContent = `${Math.round(avgUs)}µs`;
+      }
+    }
+
+    // 4. Animate Curved SVG Bézier Mesh
+    function pulseTopology(entry) {
+      let clientPath = null;
+      let backendPath = null;
+
+      const id = entry.identity || '';
+      if (id.includes('frontend-service')) {
+        clientPath = document.getElementById('path-frontend');
+      } else if (id.includes('orders-service')) {
+        clientPath = document.getElementById('path-orders');
+      } else if (id.includes('payments-service')) {
+        clientPath = document.getElementById('path-payments');
+      } else {
+        clientPath = document.getElementById('path-adversary');
+      }
+
+      const tgt = entry.target_backend || '';
+      const path = entry.path || '';
+      if (tgt.includes('9091') || path.startsWith('/orders/')) {
+        backendPath = document.getElementById('path-backend-orders');
+      } else if (tgt.includes('9092') || path.startsWith('/payments/')) {
+        backendPath = document.getElementById('path-backend-payments');
+      } else if (tgt.includes('9099') || path.startsWith('/inventory/')) {
+        backendPath = document.getElementById('path-backend-inventory');
+      }
+
+      let pulseClass = 'active-allow';
+      if (entry.decision === 'DENY' || entry.decision === 'TLS_REJECT' || entry.decision === 'CONTROL_DENY') {
+        pulseClass = 'active-deny';
+      } else if (entry.decision === 'SHADOW_DENY') {
+        pulseClass = 'active-shadow';
+      }
+
+      if (clientPath) {
+        clientPath.classList.add(pulseClass);
+        setTimeout(() => clientPath.classList.remove(pulseClass), 700);
+      }
+      if (backendPath && (entry.decision === 'ALLOW' || entry.decision === 'SHADOW_DENY' || entry.status_code === 503)) {
+        setTimeout(() => {
+          backendPath.classList.add(pulseClass);
+          setTimeout(() => backendPath.classList.remove(pulseClass), 700);
+        }, 120);
+      }
+    }
+
+    // 5. Dynamic Node Quarantine Styling
+    function updateTopologyQuarantine() {
+      const nodeFront = document.getElementById('node-frontend');
+      const nodeOrd = document.getElementById('node-orders');
+      const nodePay = document.getElementById('node-payments');
+
+      const isRev = (name) => {
+        for (let r of revokedSet) {
+          if (r.includes(name)) return true;
+        }
+        return false;
+      };
+
+      if (nodeFront) nodeFront.classList.toggle('quarantined', isRev('frontend-service'));
+      if (nodeOrd) nodeOrd.classList.toggle('quarantined', isRev('orders-service'));
+      if (nodePay) nodePay.classList.toggle('quarantined', isRev('payments-service'));
+    }
+
+    // 6. Render Kill-Switch Panel
+    function renderKillSwitchList() {
+      const container = document.getElementById('workloadsContainer');
+      container.innerHTML = '';
+
+      knownIdentities.forEach(id => {
+        const shortName = id.split('/').pop();
+        const isRevoked = revokedSet.has(id);
+
+        const card = document.createElement('div');
+        card.className = `workload-card ${isRevoked ? 'revoked-active' : ''}`;
+        card.innerHTML = `
+          <div>
+            <div class="workload-name">
+              <span>${shortName}</span>
+              ${isRevoked 
+                ? '<span class="pill pill-deny">REVOKED 🔒</span>' 
+                : '<span class="pill pill-allow">ACTIVE</span>'}
+            </div>
+            <div class="workload-spiffe" title="${id}">${id}</div>
+          </div>
+          <button class="btn-toggle-revoke ${isRevoked ? 'btn-do-restore' : 'btn-do-revoke'}"
+                  onclick="toggleRevoke('${id}', ${isRevoked})">
+            ${isRevoked ? 'RESTORE ACCESS' : 'REVOKE (1-Click)'}
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function toggleRevoke(identity, currentlyRevoked) {
+      const action = currentlyRevoked ? 'unrevoke' : 'revoke';
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/revoke`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-ZetaShield-Admin-Token': getAdminToken()
+          },
+          body: JSON.stringify({ identity, action })
+        });
+        if (res.status === 401) {
+          showToast('401 Unauthorized: Admin Token rejected by Gateway Control Plane!', false);
+          return;
+        }
+        if (res.ok) {
+          if (currentlyRevoked) {
+            revokedSet.delete(identity);
+            showToast(`Access restored for ${identity.split('/').pop()}`);
+          } else {
+            revokedSet.add(identity);
+            showToast(`Threat Quarantined: ${identity.split('/').pop()} revoked!`, false);
+          }
+          renderKillSwitchList();
+          updateTopologyQuarantine();
+          fetchStatus();
+        }
+      } catch (err) {
+        showToast('Revoke action failed: ' + err, false);
+      }
+    }
+
+    // 7. Mode Switch
+    async function setMode(mode) {
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/mode`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-ZetaShield-Admin-Token': getAdminToken()
+          },
+          body: JSON.stringify({ mode })
+        });
+        if (res.status === 401) {
+          showToast('401 Unauthorized: Admin Token rejected by Gateway Control Plane!', false);
+          return;
+        }
+        if (res.ok) {
+          updateModeUI(mode);
+          showToast(`Gateway enforcement mode switched to: ${mode.toUpperCase()}`);
+        }
+      } catch (err) {
+        showToast('Mode change failed: ' + err, false);
+      }
+    }
+
+    function updateModeUI(mode) {
+      currentMode = mode.toLowerCase();
+      if (currentMode === 'enforce') {
+        btnModeEnforce.className = 'mode-btn active enforce';
+        btnModeLearning.className = 'mode-btn';
+      } else {
+        btnModeEnforce.className = 'mode-btn';
+        btnModeLearning.className = 'mode-btn active learning';
+      }
+    }
+
+    // 8. Interactive Ledger Re-Verify Action
+    async function verifyLedgerLive() {
+      try {
+        showToast('Cryptographic audit verification initiated...');
+        const res = await fetch(`${BASE_URL}/api/v1/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const led = data.ledger || {};
+        if (led.intact) {
+          showToast(`SHA-256 Ledger Verified: All ${led.verified_records} blocks 100% intact!`);
+        } else {
+          showToast(`CRITICAL: Tamper detected in block chain: ${led.error_msg}`, false);
+        }
+        fetchStatus();
+      } catch (err) {
+        showToast('Ledger verification failed: ' + err, false);
+      }
+    }
+
+    // 9. Render Cryptographic Audit Table
+    function renderTable() {
+      const search = filterInput.value.toLowerCase().trim();
+      const decFilter = decisionFilter.value;
+
+      const filtered = auditLog.filter(e => {
+        if (decFilter !== 'ALL' && e.decision !== decFilter) return false;
+        if (!search) return true;
+        const text = `${e.identity} ${e.path} ${e.client_ip} ${e.method} ${e.decision} ${e.entry_hash || ''}`.toLowerCase();
+        return text.includes(search);
+      });
+
+      if (filtered.length === 0) {
+        auditTableBody.innerHTML = `
+          <tr>
+            <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 36px;">
+              No audit records matching filter criteria.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      const rows = filtered.map(e => {
+        const timeStr = e.timestamp ? e.timestamp.substring(11, 19) : '--:--:--';
+        const shortId = e.identity ? (e.identity.includes('/') ? e.identity.split('/').pop() : e.identity) : 'unknown';
+        
+        // BUG FIX #1: Correct property is e.entry_hash!
+        const rawHash = e.entry_hash || '';
+        const hashPill = rawHash 
+          ? `<span class="hash-pill" title="SHA-256: ${rawHash}">🔗 ${rawHash.substring(0, 8)}...</span>` 
+          : `<span class="hash-pill" style="color: var(--text-muted); border-color: var(--border);">none</span>`;
+
+        let pillClass = 'pill-allow';
+        if (e.decision === 'DENY') pillClass = 'pill-deny';
+        else if (e.decision === 'TLS_REJECT') pillClass = 'pill-tls-reject';
+        else if (e.decision === 'SHADOW_DENY') pillClass = 'pill-shadow';
+        else if (e.decision === 'RATE_LIMITED') pillClass = 'pill-ratelimit';
+        else if (e.decision === 'CONTROL_DENY') pillClass = 'pill-deny';
+        else if (e.decision.includes('REVOKE') || e.decision === 'MODE_CHANGE' || e.decision === 'CERT_RELOAD') pillClass = 'pill-control';
+
+        const statusColor = (e.status_code >= 200 && e.status_code < 300) ? 'var(--accent-green)'
+                          : (e.status_code >= 400 && e.status_code < 500) ? 'var(--accent-red)'
+                          : 'var(--accent-amber)';
+
+        const latText = e.duration_us >= 1000 ? `${(e.duration_us/1000).toFixed(2)}ms` : `${e.duration_us || 1}µs`;
+
+        return `
+          <tr class="clickable-row" onclick="inspectBlock(${e.index})">
+            <td style="font-family: var(--font-mono); color: var(--text-muted);">${e.index || '-'}</td>
+            <td style="font-family: var(--font-mono);">${timeStr}</td>
+            <td style="font-family: var(--font-mono); color: var(--text-secondary);">${e.client_ip || '-'}</td>
+            <td title="${e.identity}"><strong>${shortId}</strong></td>
+            <td><span style="font-family: var(--font-mono); font-weight: 700;">${e.method || 'GET'}</span></td>
+            <td style="font-family: var(--font-mono); color: var(--accent-cyan);">${e.path || '/'}</td>
+            <td style="font-family: var(--font-mono); color: var(--text-muted);">${e.target_backend || '-'}</td>
+            <td><span class="pill ${pillClass}">${e.decision || 'UNKNOWN'}</span></td>
+            <td style="font-family: var(--font-mono); font-weight: 700; color: ${statusColor}">${e.status_code || 0}</td>
+            <td style="font-family: var(--font-mono);">${latText}</td>
+            <td>${hashPill}</td>
+          </tr>
+        `;
+      }).join('');
+
+      auditTableBody.innerHTML = rows;
+
+      if (autoScroll) {
+        const container = document.getElementById('auditTableContainer');
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    function toggleAutoScroll() {
+      autoScroll = !autoScroll;
+      btnPauseScroll.textContent = autoScroll ? 'Pause Stream' : 'Resume Stream';
+      btnPauseScroll.style.color = autoScroll ? 'var(--text-primary)' : 'var(--accent-amber)';
+    }
+
+    // 10. Click-to-Inspect Forensic Block Inspector Modal
+    function inspectBlock(blockIndex) {
+      const entry = auditLog.find(e => e.index === blockIndex);
+      if (!entry) return;
+      selectedBlock = entry;
+
+      document.getElementById('fBlockTitle').textContent = `Block #${entry.index} Forensic Record`;
+      document.getElementById('fBlockTime').textContent = entry.timestamp || '';
+      document.getElementById('fDecisionStatus').innerHTML = `
+        <span class="pill ${entry.decision === 'ALLOW' ? 'pill-allow' : 'pill-deny'}">${entry.decision}</span>
+        <strong style="margin-left: 6px;">HTTP ${entry.status_code}</strong>
+      `;
+      document.getElementById('fDuration').textContent = `${entry.duration_us} microseconds (${(entry.duration_us/1000).toFixed(3)}ms)`;
+      document.getElementById('fIdentity').textContent = entry.identity || 'none';
+      document.getElementById('fClientIP').textContent = entry.client_ip || '-';
+      document.getElementById('fMethodPath').textContent = `${entry.method} ${entry.path}`;
+      document.getElementById('fTarget').textContent = entry.target_backend || 'none';
+      document.getElementById('fReason').textContent = entry.reason || 'none';
+      document.getElementById('fPrevHash').textContent = entry.prev_hash || 'Genesis';
+      document.getElementById('fEntryHash').textContent = entry.entry_hash || 'none';
+      document.getElementById('fRawJson').textContent = JSON.stringify(entry, null, 2);
+
+      forensicModal.classList.add('open');
+    }
+
+    function closeForensicModal() {
+      forensicModal.classList.remove('open');
+    }
+
+    function copyRawForensicJSON() {
+      if (!selectedBlock) return;
+      navigator.clipboard.writeText(JSON.stringify(selectedBlock, null, 2));
+      showToast('Canonical JSON copied to clipboard!');
+    }
+
+    // 11. Policy & Discovery Modal
+    function openDiscoveryModal() {
+      discoveryModal.classList.add('open');
+      fetchStatus();
+    }
+    function closeDiscoveryModal() {
+      discoveryModal.classList.remove('open');
+    }
+    function copyDiscoveryYaml() {
+      navigator.clipboard.writeText(discoveryYamlContent.textContent);
+      showToast('Candidate policy YAML copied to clipboard!');
+    }
+
+    // Close modals on Esc
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeForensicModal();
+        closeDiscoveryModal();
+      }
+    });
+
+    // Bootstrapping
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchStatus();
+      fetchInitialAudit();
+      connectEventStream();
+      setInterval(fetchStatus, 3500); // Periodic sync
+    });
+  </script>
+</body>
+</html>

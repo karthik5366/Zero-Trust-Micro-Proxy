@@ -4,12 +4,17 @@ services:
       context: .
       dockerfile: Dockerfile.gateway
     container_name: zeta-gateway
+    restart: unless-stopped
+    security_opt:
+      - "no-new-privileges:true"
     ports:
-      - "8443:8443"  # ONLY exposed port in the entire mesh
+      - "8443:8443"  # mTLS Zero-Trust Ingress (Public Entrypoint)
+      - "127.0.0.1:8444:8444"  # Control Plane & SOC Dashboard (Loopback Only)
     volumes:
       - ./certs:/etc/zetashield/certs:ro
       - ./deploy/policy.docker.yaml:/etc/zetashield/policy.yaml:ro
       - ./deploy/logs:/app/logs
+      - ./telemetry-dashboard:/app/dashboard:ro
     environment:
       - ZS_POLICY_PATH=/etc/zetashield/policy.yaml
       - ZS_CA_PATH=/etc/zetashield/certs/ca.pem
@@ -17,8 +22,14 @@ services:
       - ZS_KEY_PATH=/etc/zetashield/certs/proxy-key.pem
       - ZS_AUDIT_PATH=/app/logs/audit.log.jsonl
       - ZS_LISTEN_ADDR=:8443
+      - ZS_CONTROL_ADDR=:8444
+      - ZS_DASHBOARD_DIR=/app/dashboard
+      - ZS_HMAC_SECRET=${ZS_HMAC_SECRET:-zetashield-hop2-cluster-secret-2026}
+      - ZS_ADMIN_TOKEN=${ZS_ADMIN_TOKEN:-zetashield-admin-secret-2026}
     networks:
-      - zeta-net
+      - zeta-ingress-net
+      - zeta-orders-net
+      - zeta-payments-net
     depends_on:
       - orders
       - payments
@@ -28,25 +39,39 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     container_name: zeta-orders
+    restart: unless-stopped
+    security_opt:
+      - "no-new-privileges:true"
     environment:
       - APP_FILE=orders_api.py
       - BIND_HOST=0.0.0.0
       - PORT=9091
+      - ZS_HMAC_SECRET=${ZS_HMAC_SECRET:-zetashield-hop2-cluster-secret-2026}
     networks:
-      - zeta-net
+      - zeta-orders-net
 
   payments:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: zeta-payments
+    restart: unless-stopped
+    security_opt:
+      - "no-new-privileges:true"
     environment:
       - APP_FILE=payments_api.py
       - BIND_HOST=0.0.0.0
       - PORT=9092
+      - ZS_HMAC_SECRET=${ZS_HMAC_SECRET:-zetashield-hop2-cluster-secret-2026}
     networks:
-      - zeta-net
+      - zeta-payments-net
 
 networks:
-  zeta-net:
+  zeta-ingress-net:
     driver: bridge
+  zeta-orders-net:
+    driver: bridge
+    internal: true
+  zeta-payments-net:
+    driver: bridge
+    internal: true
